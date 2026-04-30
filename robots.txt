@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wuj.github.io/sitemap.xml
+Sitemap: https://jeffwu.com/sitemap.xml

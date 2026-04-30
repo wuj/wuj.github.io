@@ -7,7 +7,7 @@ Notes on how this site is built and how to work on it locally.
 
 ## What this site is
 
-A GitHub Pages user site at `https://wuj.github.io`, built with Jekyll using
+A GitHub Pages user site at `https://jeffwu.com`, built with Jekyll using
 the default `minima` theme. The repository is intentionally minimal: almost
 everything that renders comes from the `minima` gem, not from files in this
 repo.
@@ -45,7 +45,7 @@ Using the homepage as the example:
    into `<head>`. Both are called from minima's `head.html`, which is why
    `_config.yml` must keep them in `plugins:`.
 7. The final HTML is written to `_site/index.html`. On GitHub the same build
-   runs server-side and is served at `https://wuj.github.io`.
+   runs server-side and is served at `https://jeffwu.com`.
 
 So `index.md` is a stub. Its only job is to say "render the home layout
 here." All visible HTML, CSS, header, and footer come from the theme.
@@ -134,7 +134,7 @@ The chain that fires after `git push origin main`:
 4. **Output is deployed to the Pages CDN.** GitHub uploads the built HTML,
    CSS, and assets to its Pages infrastructure and invalidates the cache.
    Usually 30 seconds to a couple of minutes.
-5. **The site is live at `https://wuj.github.io`.** There is no separate
+5. **The site is live at `https://jeffwu.com`.** There is no separate
    `gh-pages` branch for user sites; the source branch (`main`) is built
    directly.
 
@@ -158,7 +158,7 @@ The chain that fires after `git push origin main`:
   does not appear, hard-refresh (`Cmd+Shift+R`) or wait a minute.
 
 So the whole loop is: push, wait 30 to 90 seconds, refresh
-`https://wuj.github.io`.
+`https://jeffwu.com`.
 
 ## Things not to do
 
