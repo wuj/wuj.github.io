@@ -137,8 +137,15 @@ about.
 - **`excerpt`**: hand-written summary that overrides the first paragraph
   on the homepage. Or set `excerpt_separator: "<!--more-->"` in
   `_config.yml` and put `<!--more-->` in posts where you want the cut.
-- **`hidden: true`**: build the post but skip it in the home layout's
-  post list.
+- **Unlisted posts**: minima does not honor a `hidden` flag, and Jekyll
+  has no built-in "publish but hide from listings" toggle. To publish a
+  post at a URL while keeping it out of the home list, feed, sitemap, and
+  tags index, move it from `_posts/` into a separate Jekyll collection
+  (e.g. `_unlisted/`). Declare the collection in `_config.yml` with
+  `output: true` and the same permalink pattern your posts use, and set
+  `sitemap: false` in the collection's defaults. Files in a collection
+  are not pulled into `site.posts`, which is what every list on this
+  site iterates.
 
 ## A complete reference post
 
@@ -223,7 +230,7 @@ post-specific (title, description, date, image, etc.).
 After the post is built locally:
 
 ```bash
-curl -s http://127.0.0.1:4000/2026/05/01/debugging-flaky-tests-in-go.html \
+curl -s http://127.0.0.1:4000/2026/debugging-flaky-tests-in-go/ \
   | grep -E '<title>|description|og:|twitter:|canonical|application/ld\+json' \
   | head -30
 ```

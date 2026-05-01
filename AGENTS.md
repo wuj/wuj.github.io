@@ -1,41 +1,77 @@
 # AGENTS.md
 
-Instructions for Codex and other coding agents working in this repository. These rules apply to the whole repo.
+Instructions for Codex and other coding agents working in this repository.
+These rules apply to the whole repo.
 
 ## Project
 
-This is a GitHub Pages user site (`wuj.github.io`) built as a deliberately minimal Jekyll site using the default `minima` theme. Keep the repo small: commit only files needed for the site to render, for GitHub Pages compatibility, or for the local development toolchain.
+This is the GitHub Pages user site for `wuj.github.io`, served at
+`https://jeffwu.com`. It is a small Jekyll site built on the default
+`minima` theme.
 
-The user handles commits and pushes. Do not run `git push`.
+Most structure comes from minima. The local customization surface is
+deliberately narrow:
+
+- `_config.yml` holds site metadata, GitHub Pages settings, plugin config,
+  defaults, and excludes.
+- `index.md` uses minima's `home` layout and contains a short intro above
+  the post list.
+- `_posts/` holds normal published posts.
+- `tags.md` generates a simple tag index.
+- `assets/main.scss` imports minima and layers site typography, colors,
+  dark mode, and code highlighting on top.
+- `docs/` contains repo notes and is excluded from the built site.
+- `_unlisted/` is reserved for future non-post content that should not be
+  listed with `site.posts`.
+
+Keep the repo small. Commit only files needed for the site, GitHub Pages
+compatibility, or local development. Do not run `git push`; the user handles
+commits and pushes.
 
 ## Prose
 
-Use plain language that is easy to understand. All generated prose and code comments must be ASCII-only UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no emojis. Use hyphens only for real hyphenation, not as dash substitutes.
+Use plain language. Generated prose and code comments must be ASCII-only
+UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no
+ellipsis characters, and no emojis.
 
 ## Commands
 
-Run commands from the repository root. Ruby is pinned by `.ruby-version` (`3.3.4`); if the local Ruby does not match, use the user's Ruby version manager instead of changing the project pin casually.
+Run commands from the repository root. Ruby is pinned by `.ruby-version`
+(`3.3.4`); if the local Ruby does not match, use the user's Ruby version
+manager instead of changing the project pin.
 
 ```bash
-bundle install                                       # first-time setup or after Gemfile changes
-bundle exec jekyll serve                             # local preview at http://127.0.0.1:4000
-JEKYLL_ENV=production bundle exec github-pages build # closest local proxy for GitHub Pages
+bundle install
+bundle exec jekyll serve
+JEKYLL_ENV=production bundle exec github-pages build
 ```
 
-There are no tests, linters, or CI scripts. For content or config changes, run the production build when practical. For visual checks, run the local server. The expected baseline render is a minima-themed page with the site title "Jeff Wu", a mostly empty body while there are no posts, and the theme footer.
+There are no tests, linters, or CI scripts. For content or config changes,
+run the production build when practical. For visual checks, run the local
+server at `http://127.0.0.1:4000`.
 
 ## Constraints
 
-- Keep the `github-pages "~> 232"` pin in `Gemfile`. Before changing it, check <https://pages.github.com/versions/> and update `.ruby-version` only if the GitHub Pages build Ruby has moved. Do not loosen the pin.
-- Keep `webrick` in `Gemfile`; Ruby 3.0+ needs it for `bundle exec jekyll serve`.
-- Keep both `jekyll-feed` and `jekyll-seo-tag` enabled in `_config.yml`; minima's head include calls their Liquid tags.
-- `Gemfile.lock` is intentionally ignored. Do not add it unless the project policy changes.
-- `_config.yml` intentionally omits `email` so it is not published in feed metadata or meta tags.
-- `index.md` uses minima's `home` layout. With no posts, the page body is nearly blank by design.
-- Do not add empty `about.md`, `404.html`, `_layouts/`, `_includes/`, or `assets/` files just to make the tree look complete. Minima supplies those theme files.
+- Keep `github-pages "~> 232"` pinned in `Gemfile`. Before changing it,
+  check <https://pages.github.com/versions/> and update `.ruby-version`
+  only if GitHub Pages has moved its Ruby version.
+- Keep `webrick` in `Gemfile`; Ruby 3.0+ needs it for local serving.
+- Keep `jekyll-feed`, `jekyll-seo-tag`, and `jekyll-sitemap` enabled in
+  `_config.yml`.
+- Keep `baseurl: ""` in `_config.yml` for this user/custom-domain site.
+- Keep `email: hello@jeffwu.com` in `_config.yml`; this address is
+  intentionally public.
+- Keep `Gemfile.lock` ignored unless the project policy changes.
+- Do not add empty `about.md`, `404.html`, `_layouts/`, `_includes/`, or
+  asset files just to make the tree look complete.
+- If overriding a minima theme file is necessary, copy only the specific
+  file from the installed minima gem and edit the smallest useful surface.
 
 ## Editing
 
-Prefer minimal, targeted changes that preserve GitHub Pages compatibility. Use existing Jekyll and minima conventions before adding custom layouts or assets. If customizing a theme file is necessary, copy only the specific file from the installed `minima` gem and edit the smallest surface needed.
+Prefer minimal, targeted changes that preserve GitHub Pages compatibility.
+Use existing Jekyll, Liquid, SCSS, and minima conventions before adding new
+structure.
 
-Avoid decorative dependencies, generated artifacts, local editor state, unrelated rewrites, and removal of user-created changes.
+Avoid decorative dependencies, generated artifacts, local editor state,
+unrelated rewrites, and removal of user-created changes.

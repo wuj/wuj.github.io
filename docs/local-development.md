@@ -16,15 +16,21 @@ repo.
 
 | File | Purpose |
 | --- | --- |
-| `_config.yml` | Site title, theme selection, plugins, and excluded files. |
+| `_config.yml` | Site title, theme selection, plugins, defaults, and excluded files. |
 | `Gemfile` | Pins `github-pages "~> 232"` and `webrick`. |
 | `.ruby-version` | Pins Ruby to `3.3.4`, matching the GitHub Pages build. |
-| `index.md` | Homepage source. Front matter only, body is empty. |
+| `CNAME` | Maps the site to the custom domain `jeffwu.com`. |
+| `index.md` | Homepage source. Front matter plus a short intro paragraph. |
+| `assets/main.scss` | Typography scale, color palette, dark mode, and Rouge syntax highlighting. Layered on top of minima's stylesheet. |
+| `tags.md` | Custom page that lists posts grouped by tag. Minima does not ship one. |
 | `.gitignore` | Excludes `_site/`, `Gemfile.lock`, editor and OS cruft. |
 
-There are no `_layouts/`, `_includes/`, `assets/`, `about.md`, or `404.html`
-files because the `minima` gem already supplies them. Only override one by
-copying that specific file from the gem into a matching path in this repo.
+There are no `_layouts/`, `_includes/`, `about.md`, or `404.html` files
+because the `minima` gem already supplies them. The only theme asset
+overridden here is `assets/main.scss`, which compiles on top of minima's
+SCSS partials rather than replacing any HTML structure. To override any
+other theme file, copy that specific file from the gem into a matching
+path in this repo.
 
 ## How a page is rendered
 
@@ -32,23 +38,29 @@ Using the homepage as the example:
 
 1. Jekyll reads `_config.yml`, loads the `minima` gem as the theme, and
    processes every content file in the repo root.
-2. Jekyll sees `index.md` with front matter `layout: home`. The body is
-   empty, so the rendered content is empty.
-3. Jekyll wraps that empty content in the layout named `home`. There is no
+2. Jekyll sees `index.md` with front matter `layout: home`. The body is a
+   short intro paragraph, which becomes the rendered content.
+3. Jekyll wraps that content in the layout named `home`. There is no
    `_layouts/home.html` here, so it falls back to `minima/_layouts/home.html`
    from the gem.
 4. `home.html` extends `minima/_layouts/default.html`, which pulls in
    `minima/_includes/head.html`, `header.html`, and `footer.html`.
-5. `home.html` prints the page content (empty), then a list of posts from
-   `site.posts`. There is no `_posts/` directory, so the post list is empty.
+5. `home.html` prints the page content, then a list of posts from
+   `site.posts`. Posts live in `_posts/`. With `show_excerpts: true` set in
+   `_config.yml`, each entry shows its excerpt under the title.
 6. `jekyll-feed` generates `/feed.xml`. `jekyll-seo-tag` injects meta tags
    into `<head>`. Both are called from minima's `head.html`, which is why
    `_config.yml` must keep them in `plugins:`.
-7. The final HTML is written to `_site/index.html`. On GitHub the same build
+7. `assets/main.scss` is compiled to `_site/assets/main.css`. The leading
+   `---` front matter triggers Jekyll's SCSS processor, which imports
+   minima's partials and then applies the customizations layered after
+   the import.
+8. The final HTML is written to `_site/index.html`. On GitHub the same build
    runs server-side and is served at `https://jeffwu.com`.
 
-So `index.md` is a stub. Its only job is to say "render the home layout
-here." All visible HTML, CSS, header, and footer come from the theme.
+So `index.md` carries minimal content of its own: front matter plus a short
+intro paragraph. The home layout, header, and footer come from the theme;
+the styling layered on top comes from `assets/main.scss`.
 
 ## Local development workflow
 

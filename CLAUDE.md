@@ -1,10 +1,8 @@
 # CLAUDE.md
 
-Instructions for Claude Code working in this repository. These rules apply to the whole repo.
-
 ## Project
 
-This is a GitHub Pages user site (`wuj.github.io`) built as a deliberately minimal Jekyll site using the default `minima` theme. Keep the repo small: commit only files needed for the site to render, for GitHub Pages compatibility, or for the local development toolchain.
+This is a GitHub Pages user site (`wuj.github.io`) built on the `minima` theme. The repo aims to stay small: commit only files needed for the site to render, for GitHub Pages compatibility, or for the local development toolchain. Visual customization is concentrated in `assets/main.scss` (typography scale, color palette, dark mode, Rouge syntax highlighting). No minima `_layouts/` or `_includes/` files are overridden.
 
 The user handles commits and pushes. Do not run `git push`.
 
@@ -14,7 +12,7 @@ Use plain language that is easy to understand. All generated prose and code comm
 
 ## Commands
 
-Run commands from the repository root. Ruby is pinned by `.ruby-version` (`3.3.4`); if the local Ruby does not match, use the user's Ruby version manager instead of changing the project pin casually.
+Ruby is pinned by `.ruby-version` (`3.3.4`); if the local Ruby does not match, use the user's Ruby version manager instead of changing the project pin casually.
 
 ```bash
 bundle install                                       # first-time setup or after Gemfile changes
@@ -22,7 +20,7 @@ bundle exec jekyll serve                             # local preview at http://1
 JEKYLL_ENV=production bundle exec github-pages build # closest local proxy for GitHub Pages
 ```
 
-There are no tests, linters, or CI scripts. For content or config changes, run the production build when practical. For visual checks, run the local server. The expected baseline render is a minima-themed page with the site title "Jeff Wu", a mostly empty body while there are no posts, and the theme footer.
+There are no tests, linters, or CI scripts. For content or config changes, run the production build when practical. For visual checks, run the local server.
 
 ## Constraints
 
@@ -30,9 +28,7 @@ There are no tests, linters, or CI scripts. For content or config changes, run t
 - Keep `webrick` in `Gemfile`; Ruby 3.0+ needs it for `bundle exec jekyll serve`.
 - Keep both `jekyll-feed` and `jekyll-seo-tag` enabled in `_config.yml`; minima's head include calls their Liquid tags.
 - `Gemfile.lock` is intentionally ignored. Do not add it unless the project policy changes.
-- `_config.yml` intentionally omits `email` so it is not published in feed metadata or meta tags.
-- `index.md` uses minima's `home` layout. With no posts, the page body is nearly blank by design.
-- Do not add empty `about.md`, `404.html`, `_layouts/`, `_includes/`, or `assets/` files just to make the tree look complete. Minima supplies those theme files.
+- Do not add empty `about.md`, `404.html`, `_layouts/`, or `_includes/` files just to make the tree look complete. Minima supplies those theme files.
 
 ## Editing
 
