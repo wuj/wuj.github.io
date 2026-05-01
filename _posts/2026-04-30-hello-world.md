@@ -1,11 +1,13 @@
 ---
 title: "Hello, world"
+excerpt: A sample first post to confirm posts render correctly.
 description: "A sample first post that doubles as a visual test of the site's typography, code-block highlighting, lists, blockquotes, and inline-code styling."
 date: 2026-04-30
 last_modified_at: 2026-05-01
 # image: /assets/images/posts/2026-04-30/hero.png
 categories: [meta]
 tags: [setup, jekyll, minima, typography]
+published: false
 ---
 
 A sample first post to confirm posts render correctly. Delete or replace it

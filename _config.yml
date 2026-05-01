@@ -1,11 +1,13 @@
-title: 相見不如懷念 / the long version
+title: 相見不如懷念 / long version
 author: Jeff Wu
 email: your-email@example.com
 description: A digital junk drawer for the modern polymath.
 url: https://jeffwu.com
+baseurl: ""
 repository: wuj/wuj.github.io
 theme: minima
 header_pages: []
+show_excerpts: true
 permalink: /:year/:slug/
 plugins:
   - jekyll-feed
