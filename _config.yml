@@ -1,4 +1,4 @@
-title: 相見不如懷念 / long version
+title: "相見不如懷念  :: [ the long ver. ]"
 author: Jeff Wu
 email: hello@jeffwu.com
 description: A digital junk drawer for the modern polymath.
@@ -35,5 +35,6 @@ exclude:
   - AGENTS.md
   - CLAUDE.md
   - docs
+  - books
   - README.md
   - LICENSE

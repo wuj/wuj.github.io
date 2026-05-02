@@ -114,6 +114,60 @@ JEKYLL_ENV=production bundle exec github-pages build
 
 Useful as a final check before pushing.
 
+## Local development on Windows with Docker
+
+If you do not want to install Ruby on Windows, the repo ships a `Dockerfile`
+and `docker-compose.yml` that build a container pinned to the same
+Ruby (`3.3.4`) and `github-pages "~> 232"` versions used above. Docker
+Desktop is the only prerequisite.
+
+```powershell
+docker compose up --build     # first time, or after Gemfile or Dockerfile changes
+docker compose up             # subsequent runs
+docker compose down           # stop and remove the container
+```
+
+Then open `http://127.0.0.1:4000`. Add `-d` to `up` to run detached.
+
+How the setup works:
+
+- The image is `ruby:3.3.4-slim` with `build-essential` and `git` added so
+  native gem extensions can compile.
+- `bundle install` runs at image build time. Gems are stored in a named
+  Docker volume (`bundle`) at `/usr/local/bundle`, not in the bind-mounted
+  source tree, so they survive rebuilds and do not collide with anything
+  bundled on the host.
+- The repo root is bind-mounted into `/srv/jekyll` in the container, so
+  edits on the host are visible to Jekyll immediately.
+- The default `CMD` runs `bundle exec jekyll serve --host 0.0.0.0
+  --force_polling`. The `--host 0.0.0.0` flag is required so the server
+  binds to an interface reachable from the host. The `--force_polling`
+  flag is required because Linux inotify file change events do not
+  propagate reliably from a Windows host into a Linux container, so the
+  watcher polls the filesystem instead.
+- Port `4000` is mapped to the host. The `_site/` build output appears in
+  the repo root via the bind mount, same as a host build.
+
+### Restarting after config changes
+
+The watcher rebuilds on content changes but does not pick up everything.
+After editing `_config.yml`, stop the container with `Ctrl+C` (or
+`docker compose down`) and start it again. After editing `Gemfile`, run
+`docker compose up --build` so `bundle install` reruns.
+
+### Production build inside Docker
+
+To run the closest local proxy for the GitHub Pages build inside the
+container:
+
+```powershell
+docker compose run --rm -e JEKYLL_ENV=production jekyll bundle exec github-pages build
+```
+
+This starts a one-off container from the `jekyll` service, overrides the
+default `CMD` with `bundle exec github-pages build`, and removes the
+container when the command exits. Output lands in `_site/` on the host.
+
 ## Checking if the server is already running
 
 If you are not sure whether `jekyll serve` is still running from earlier:

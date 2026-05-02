@@ -30,7 +30,7 @@ commits and pushes.
 
 ## Prose
 
-Use plain language. Generated prose and code comments must be ASCII-only
+Use casual, plain language. Generated prose and code comments must be ASCII-only
 UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no
 ellipsis characters, and no emojis.
 
@@ -49,6 +49,28 @@ JEKYLL_ENV=production bundle exec github-pages build
 There are no tests, linters, or CI scripts. For content or config changes,
 run the production build when practical. For visual checks, run the local
 server at `http://127.0.0.1:4000`.
+
+### Prolog snippets on Windows
+
+Do not assume `swipl` is installed on the Windows PATH. This machine has worked
+with Docker and the local `swipl:latest` image. For quick checks of Prolog or
+DCG examples, pipe a PowerShell here-string into SWI-Prolog inside Docker:
+
+```powershell
+$program = @'
+s --> [a].
+
+run :-
+    phrase(s, [a]),
+    halt.
+'@
+$program | docker run --rm -i swipl:latest swipl -q -g "['user'], run"
+```
+
+Keep these checks ephemeral. Prefer stdin like the example above over adding
+temporary files to the repo. Include `halt` in the goal or in `run/0` so the
+container exits cleanly. When checking several snippets from a post, use
+distinct predicate names or suffixes to avoid accidental name and arity clashes.
 
 ## Constraints
 
