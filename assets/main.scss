@@ -71,6 +71,11 @@ pre {
   line-height: 1.5;
 }
 
+.highlight,
+.highlighter-rouge .highlight {
+  background-color: #f6f8fa;
+}
+
 code.highlighter-rouge {
   background-color: #f6f8fa;
   padding: 0.15em 0.4em;
@@ -137,6 +142,11 @@ code.highlighter-rouge {
   pre {
     background-color: #161b22;
     border-color: #30363d;
+  }
+
+  .highlight,
+  .highlighter-rouge .highlight {
+    background-color: #161b22;
   }
 
   code.highlighter-rouge {
