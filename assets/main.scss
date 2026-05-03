@@ -76,6 +76,10 @@ pre {
   background-color: #f6f8fa;
 }
 
+pre > code {
+  background-color: transparent;
+}
+
 code.highlighter-rouge {
   background-color: #f6f8fa;
   padding: 0.15em 0.4em;
