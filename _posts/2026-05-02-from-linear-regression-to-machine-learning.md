@@ -147,7 +147,7 @@ print(f"RSS for the TV-only line: {rss:.2f}")
 
 Once `RSS` is the score, fitting becomes an optimization problem: pick the values of `beta0` and `beta1` that make `RSS` as small as possible. This is called ordinary least squares, or OLS for short.
 
-For simple linear regression, this minimization has a clean closed-form answer. The slope and intercept are:
+For simple linear regression, this minimization has an exact closed-form answer. The slope and intercept are:
 
 `beta1 = sum((x_i - x-bar)(y_i - y-bar)) / sum((x_i - x-bar)^2)`
 
@@ -258,7 +258,7 @@ One caveat: a low `R^2` doesn't always mean `X` is useless. It can also mean the
 
 The slope and intercept that least squares produces aren't eternal truths. They're estimates from one particular sample of data. If you collected a different sample of `200` markets, you'd get slightly different numbers. So the natural follow-up: how much would the fitted line wiggle if you kept pulling similar datasets?
 
-The bootstrap is a clean way to answer that. The recipe is:
+The bootstrap answers that empirically, without leaning on any distributional assumptions about the noise. The recipe is:
 
 1. Resample the original data with replacement, keeping the same sample size.
 2. Refit the regression on the resampled data.
@@ -372,7 +372,7 @@ So far we've assumed the relationship between predictor and response is roughly 
 
 [![Scattered points form a U-shaped pattern around a straight line that misses the curve]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/u-shaped-residual-complaint.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/u-shaped-residual-complaint.png' | relative_url }})
 
-The cleanest way to spot a bad linear fit is to look at the residuals. If the model is right, the residuals should look like random noise scattered around zero. If they show structure (a curve, a wave, a U-shape), that's the model telling you the line is the wrong shape.
+The most direct way to spot a bad linear fit is to look at the residuals. If the model is right, the residuals should look like random noise scattered around zero. If they show structure (a curve, a wave, a U-shape), that's the model telling you the line is the wrong shape.
 
 ```python
 import matplotlib.pyplot as plt
@@ -564,7 +564,7 @@ Same model we fit with `statsmodels` earlier, just dressed up in the `scikit-lea
 
 What if we wanted to predict not how many units sold, but whether a market is a high-sales market or not? That's the classification version of the same question.
 
-Logistic regression is the cleanest bridge from where we are now. It takes the same linear combination we already know and feeds it through a sigmoid function to squash the output between `0` and `1`:
+Logistic regression is the shortest bridge from where we are now. It takes the same linear combination we already know and feeds it through a sigmoid function to squash the output between `0` and `1`:
 
 `z = beta0 + beta1*x1 + ... + beta_p*x_p`
 
@@ -588,7 +588,7 @@ print(clf.predict([[150, 30, 20]]))         # final class label
 
 The `fit` / `predict` pattern is identical to the regression case. Under the hood the core loss is different: logistic regression uses log loss, also called cross-entropy, instead of MSE. `scikit-learn`'s default `LogisticRegression` also adds L2 regularization unless you change the penalty. The recipe is still the same: define an objective, then use an iterative numerical optimizer to find parameters that minimize it.
 
-You also can't fit logistic regression with a closed-form formula like ordinary least squares. There's no clean algebraic shortcut for log loss. So the iterative-search idea from the Gradient Descent section isn't optional anymore. It's how the model gets fit at all.
+You also can't fit logistic regression with a closed-form formula like ordinary least squares. There's no closed-form algebraic shortcut for log loss. So the iterative-search idea from the Gradient Descent section isn't optional anymore. It's how the model gets fit at all.
 
 ### Why This All Matters
 
