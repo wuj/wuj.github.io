@@ -1,11 +1,11 @@
 ---
 title: "Autoregressive Decoder-Only Transformers"
-excerpt: "A walkthrough of how chatbot-style transformers turn text into tokens, tokens into vectors, and vectors back into the next word, one step at a time."
-description: "A walkthrough of how chatbot-style transformers turn text into tokens, tokens into vectors, and vectors back into the next word, one step at a time."
+excerpt: "How decoder-only transformers turn text into tokens, embeddings, attention, logits, and next-token predictions in an autoregressive loop."
+description: "How decoder-only transformers turn text into tokens, embeddings, attention, logits, and next-token predictions in an autoregressive loop."
 date: 2026-04-14
 last_modified_at: 2026-05-03
 categories: [meta]
-tags: []
+tags: [machine-learning, transformers, language-models, llms, tokenization, embeddings, attention, autoregressive-models]
 published: true
 ---
 
