@@ -20,3 +20,4 @@ Desktop.ini
 # VS Code
 .vscode/
 *.code-workspace
+/lectures
