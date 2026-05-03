@@ -11,7 +11,7 @@ published: true
 
 Predicting the future feels like fortune teller stuff, but in the world of machine learning, it's mostly a math problem. The simplest version is the straight-line trend: one input, a line through the data, and then a guess for what happens next. The real world is rarely that simple though. Outcomes are almost never explained by just one thing, and the patterns they trace aren't always straight.
 
-![Fortune teller points at a glowing crystal ball with a straight-line trend]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/fortune-teller-hero.png' | relative_url }})
+[![Fortune teller points at a glowing crystal ball with a straight-line trend]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/fortune-teller-hero.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/fortune-teller-hero.png' | relative_url }})
 
 In this post, we'll move beyond a single line into multiple predictors and curved relationships, and we'll see how the fit/predict/loss/generalization pattern that falls out becomes the basic shape of machine learning.
 
@@ -34,7 +34,7 @@ advertising.head()
 
 Before we can predict anything, we have to ask a smaller question: do two variables actually move together? That's what correlation measures. And once we believe two variables are linked, regression is the tool that turns that link into an actual prediction formula. This section is the bridge from one to the other.
 
-![Detective examines two wavy data patterns with a magnifying glass]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/detective.png' | relative_url }})
+[![Detective examines two wavy data patterns with a magnifying glass]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/detective.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/detective.png' | relative_url }})
 
 ### Covariance and Pearson's r
 
@@ -67,7 +67,7 @@ One quick warning before we move on: a strong correlation doesn't mean one varia
 
 ### The Mean as Baseline
 
-![Mean machine gives the same baseline prediction to every visitor]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/mean-machine.png' | relative_url }})
+[![Mean machine gives the same baseline prediction to every visitor]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/mean-machine.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/mean-machine.png' | relative_url }})
 
 Suppose you're a marketing analyst and you want to predict sales for a new market. If you know nothing else about that market, the most reasonable guess is just the average sales across the markets you have data for. That's a baseline prediction: a single horizontal line at the mean.
 
@@ -82,7 +82,7 @@ That shift is the core idea of regression. The mean line is the "I know nothing"
 
 ### Simple Linear Regression
 
-![Cartoon regression line leads scattered data points across a graph]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/straight-line-tour-guide.png' | relative_url }})
+[![Cartoon regression line leads scattered data points across a graph]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/straight-line-tour-guide.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/straight-line-tour-guide.png' | relative_url }})
 
 Simple linear regression makes that idea precise. It models a quantitative response `Y` using a single predictor `X`, assuming the relationship is approximately linear:
 
@@ -143,7 +143,7 @@ print(f"RSS for the TV-only line: {rss:.2f}")
 
 ### Least Squares
 
-![Cartoon least-squares line with vertical residual gaps to data points]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/least-squares.png' | relative_url }})
+[![Cartoon least-squares line with vertical residual gaps to data points]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/least-squares.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/least-squares.png' | relative_url }})
 
 Once `RSS` is the score, fitting becomes an optimization problem: pick the values of `beta0` and `beta1` that make `RSS` as small as possible. This is called ordinary least squares, or OLS for short.
 
@@ -174,7 +174,7 @@ Keep in mind that closed-form solutions like this are the exception, not the rul
 
 So what does that iterative search actually look like? This idea is worth getting comfortable with, because the same idea shows up in many modern ML models.
 
-![Small robot walks downhill on a loss surface toward a target]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/mountain-hiker.png' | relative_url }})
+[![Small robot walks downhill on a loss surface toward a target]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/mountain-hiker.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/mountain-hiker.png' | relative_url }})
 
 Picture the loss as a curved surface. Each combination of `beta0` and `beta1` lands you at some height on that surface, and the height is the value of `RSS` (or `MSE`, the same thing scaled by `1/n`). Your goal is to find the lowest point. Gradient descent's strategy is dead simple: look at the slope under your feet, take a small step downhill, look again, repeat. For least squares, the surface is a single bowl with one true bottom, so a well-chosen learning rate eventually gets you there.
 
@@ -293,7 +293,7 @@ Two takeaways. First, regression coefficients come with uncertainty, and that un
 
 ## Multiple Linear Regression
 
-![Three advertising inputs flow into one prediction machine]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/multiple-linear-regression.png' | relative_url }})
+[![Three advertising inputs flow into one prediction machine]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/multiple-linear-regression.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/multiple-linear-regression.png' | relative_url }})
 
 We've squeezed about as much as we can out of TV alone. But the Advertising dataset has two more predictors sitting right there: `radio` and `newspaper`. A real marketing team would obviously care about all three at once, not one at a time. So let's bring them in.
 
@@ -370,7 +370,7 @@ So far we've assumed the relationship between predictor and response is roughly 
 
 ### When a Straight Line Fails
 
-![Scattered points form a U-shaped pattern around a straight line that misses the curve]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/u-shaped-residual-complaint.png' | relative_url }})
+[![Scattered points form a U-shaped pattern around a straight line that misses the curve]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/u-shaped-residual-complaint.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/u-shaped-residual-complaint.png' | relative_url }})
 
 The cleanest way to spot a bad linear fit is to look at the residuals. If the model is right, the residuals should look like random noise scattered around zero. If they show structure (a curve, a wave, a U-shape), that's the model telling you the line is the wrong shape.
 
@@ -455,7 +455,7 @@ That's the whole technique. Take your one input column, build a few extra polyno
 
 ## Choosing the Right Complexity
 
-![Underfitting, good fit, and overfitting shown as outfits of increasing complexity]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/model-complexity.png' | relative_url }})
+[![Underfitting, good fit, and overfitting shown as outfits of increasing complexity]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/model-complexity.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/model-complexity.png' | relative_url }})
 
 We just got a tool that can bend the curve as much as we want. That sounds great until you ask: how do we know when to stop?
 
@@ -521,7 +521,7 @@ These methods deserve their own post to do justice, but the high-level message m
 
 Everything we've done in this post actually fits inside a much bigger picture called machine learning. ML is just a name for the family of techniques that learn patterns from data instead of relying on hand-coded rules. Tom Mitchell's classic definition pins it down nicely: a program learns when its performance on some task `T`, measured by some metric `P`, improves with experience `E`. For us, `T` is "predict sales", `P` is something like RSS or `R^2`, and `E` is the Advertising dataset. We've been doing ML the whole time.
 
-![Banner reading ML Family above cartoon model characters: a curve, line, decision tree, and neural-network robot]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/ml-family.png' | relative_url }})
+[![Banner reading ML Family above cartoon model characters: a curve, line, decision tree, and neural-network robot]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/ml-family.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/ml-family.png' | relative_url }})
 
 ### Where Regression Fits
 

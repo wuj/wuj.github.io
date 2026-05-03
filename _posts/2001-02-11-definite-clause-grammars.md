@@ -11,7 +11,7 @@ published: true
 
 Writing a parser by hand is one of those exercises that always seems harder than it should be. The grammar fits on half a page; the code somehow doesn't. Not to worry though - Prolog to the rescue! Prolog has a feature that allows us to do this elegantly: Definite Clause Grammars, or DCGs for short. It's a small piece of syntax that does a lot. The rest of this post walks through what DCGs are, how they work, and why they're worth knowing.
 
-![Cheerful parser robot surrounded by DCG rules, token cards, and a parse tree]({{ '/assets/images/2001-02-11-definite-clause-grammars/hero.png' | relative_url }})
+[![Cheerful parser robot surrounded by DCG rules, token cards, and a parse tree]({{ '/assets/images/2001-02-11-definite-clause-grammars/hero.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/hero.png' | relative_url }})
 
 ## Grammars
 
@@ -72,7 +72,7 @@ S
 
 Grammars are usually sorted by what kinds of productions they allow. The Chomsky hierarchy (Chomsky, N., ["On certain formal properties of grammars"](https://www.sciencedirect.com/science/article/pii/S0019995859903626), *Information and Control* 2(2): 137-167, 1959) is the standard sorting: regular grammars sit at the bottom, then context-free, then context-sensitive, with unrestricted grammars at the top, and each step admits strictly more languages than the one below. The `a^n b^n` grammar above is a tidy witness for one of the boundaries: it's context-free, but a pumping-lemma argument rules out any regular grammar for it, so no finite-state machine will do. DCGs are aimed at the context-free rung by default, though as we'll see they can climb higher when you need them to.
 
-![Layered Chomsky hierarchy from regular languages to recursively enumerable languages]({{ '/assets/images/2001-02-11-definite-clause-grammars/chomsky-layer-cake.png' | relative_url }})
+[![Layered Chomsky hierarchy from regular languages to recursively enumerable languages]({{ '/assets/images/2001-02-11-definite-clause-grammars/chomsky-layer-cake.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/chomsky-layer-cake.png' | relative_url }})
 
 ### Context-free grammars and recognizers
 
@@ -106,7 +106,7 @@ Shieber's 1985 paper on cross-serial dependencies in Swiss German verb clusters 
 
 That doesn't mean every natural language is non-context-free. It means the class of natural languages cannot be contained entirely in the CFG family, since it contains at least one language that demonstrably exceeds CFG weak generative capacity. So a grammar for those constructions needs more than context-free rules. When we get to DCGs, we'll see that the same extra-argument trick that lets us build parse trees also gives us a clean way to push past pure context-freeness.
 
-![Person sorting tangled ribbons of natural-language phrases and connectives]({{ '/assets/images/2001-02-11-definite-clause-grammars/tangled-ribbons.png' | relative_url }})
+[![Person sorting tangled ribbons of natural-language phrases and connectives]({{ '/assets/images/2001-02-11-definite-clause-grammars/tangled-ribbons.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/tangled-ribbons.png' | relative_url }})
 
 ## CFG recognition using append
 
@@ -114,7 +114,7 @@ Turning a CFG into a Prolog recognizer is mostly a copy-paste job once you spot 
 
 Before the encoding, a quick refresher on `append/3`. `append(L1, L2, L3)` holds when `L3` is `L1` glued to the front of `L2`. The handy thing is that the same predicate runs in either direction. Call it with `L3` bound and the other two unbound, and asking for more solutions enumerates every way of cutting `L3` into a prefix and a suffix. That's a perfect fit for a rule like `s -> np vp`: let `append/3` produce a candidate split, then check that the front piece is a noun phrase and the back piece is a verb phrase.
 
-![Chef slicing a sentence into prefix and suffix token lists]({{ '/assets/images/2001-02-11-definite-clause-grammars/chef-slicing.png' | relative_url }})
+[![Chef slicing a sentence into prefix and suffix token lists]({{ '/assets/images/2001-02-11-definite-clause-grammars/chef-slicing.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/chef-slicing.png' | relative_url }})
 
 That's the whole recipe. Non-terminals turn into single-argument predicates. Each terminal gets a one-element list fact. A binary rule like `s -> np vp` compiles into a clause with one `append/3` call to slice the input in two; a rule with three symbols on its right-hand side needs two splits, four needs three, and so on, either as nested `append/3` calls or chained ones. Then each piece gets checked against the right-hand-side categories in order.
 
@@ -176,7 +176,7 @@ A few examples in the new notation make this concrete:
 
 To say "a sentence is a noun phrase followed by a verb phrase", we don't need `append/3` to split the input anymore. We just thread the lists: if the noun phrase covers `S0` minus `S1`, and the verb phrase covers `S1` minus `S`, then the sentence covers `S0` minus `S`. The shared variable `S1` does the splitting implicitly through unification.
 
-![Two scrolls marking the prefix and suffix around a consumed middle slice]({{ '/assets/images/2001-02-11-definite-clause-grammars/difference-lists.png' | relative_url }})
+[![Two scrolls marking the prefix and suffix around a consumed middle slice]({{ '/assets/images/2001-02-11-definite-clause-grammars/difference-lists.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/difference-lists.png' | relative_url }})
 
 The English fragment from before, rewritten with difference lists, becomes:
 
@@ -250,7 +250,7 @@ v   -> hums | finds
 
 The two are basically the same up to punctuation. Each non-terminal on the right-hand side becomes a comma-separated goal, and each terminal is written as a one-element list in square brackets. No list arguments, no `S0` and `S`, no calls to `append/3`.
 
-![Magician presenting simple DCG rules while Prolog machinery works backstage]({{ '/assets/images/2001-02-11-definite-clause-grammars/dcg-magician.png' | relative_url }})
+[![Magician presenting simple DCG rules while Prolog machinery works backstage]({{ '/assets/images/2001-02-11-definite-clause-grammars/dcg-magician.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/dcg-magician.png' | relative_url }})
 
 Behind the scenes, Prolog translates each DCG rule into exactly the difference-list clause we wrote by hand in the previous section. `s --> np, vp.` gets rewritten as `s(S0, S) :- np(S0, S1), vp(S1, S).`, `det --> [a].` becomes `det([a | S], S).`, and so on. The translation is purely syntactic: DCGs don't add any expressive power on top of difference-list Prolog, they just hide the boilerplate.
 
@@ -351,7 +351,7 @@ The second query contains one `pp`, the third contains two, and we could keep st
 
 The recursion also drags ambiguity along with it. The sentence `a robot finds a kettle near a window` has two valid parses: one where the prepositional phrase modifies the object noun phrase (`a kettle near a window`, the kettle in question is the one by the window), and one where it modifies the verb phrase (the finding is what happens near the window, regardless of where the kettle started out). If you thread a `Tree` argument through `np`, `vp`, and the new `pp` rule the way we did before, a query on this sentence returns both trees as you ask for more solutions. That's the behavior we want from a parser staring at a genuinely ambiguous input.
 
-![Ambiguous telescope sentence with two competing parse trees]({{ '/assets/images/2001-02-11-definite-clause-grammars/recursion.png' | relative_url }})
+[![Ambiguous telescope sentence with two competing parse trees]({{ '/assets/images/2001-02-11-definite-clause-grammars/recursion.png' | relative_url }})]({{ '/assets/images/2001-02-11-definite-clause-grammars/full/recursion.png' | relative_url }})
 
 ## Summary
 
