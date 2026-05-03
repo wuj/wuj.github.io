@@ -30,6 +30,13 @@ h4 { font-size: 1.15em; }
 h5 { font-size: 1em; }
 h6 { font-size: 0.9em; color: #555; }
 
+.site-title,
+.site-title:visited {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
 p {
   margin-bottom: 1.1em;
 }

@@ -1,4 +1,4 @@
-title: "相見不如懷念  :: [ the long ver. ]"
+title: "jeffwu.com:~/latent_space"
 author: Jeff Wu
 email: hello@jeffwu.com
 description: A digital junk drawer for the modern polymath.
@@ -36,5 +36,6 @@ exclude:
   - CLAUDE.md
   - docs
   - books
+  - lectures
   - README.md
   - LICENSE
