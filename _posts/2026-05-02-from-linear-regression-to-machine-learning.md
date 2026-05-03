@@ -461,7 +461,7 @@ We just got a tool that can bend the curve as much as we want. That sounds great
 
 ### Higher Degrees, Lower Training RSS
 
-Here's the trap. Higher-degree polynomials can only match or lower the training RSS. A degree-2 fit can beat a line. Degree-5 can beat degree-2. Push the degree high enough and the curve can start contorting sharply around individual training points. With enough degree relative to the number of distinct `x` values, a polynomial can even interpolate the training data exactly. That does not mean the model is good. It means it is flexible enough to memorize noise.
+Higher-degree polynomials can only match or lower the training RSS. A degree-2 fit can beat a line. Degree-5 can beat degree-2. Push the degree high enough and the curve can start contorting sharply around individual training points. With enough degree relative to the number of distinct `x` values, a polynomial can even interpolate the training data exactly. That does not mean the model is good. It means it is flexible enough to memorize noise.
 
 ```python
 from sklearn.pipeline import make_pipeline
