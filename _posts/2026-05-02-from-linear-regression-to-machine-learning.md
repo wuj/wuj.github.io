@@ -521,6 +521,8 @@ These methods deserve their own post to do justice, but the high-level message m
 
 Everything we've done in this post actually fits inside a much bigger picture called machine learning. ML is just a name for the family of techniques that learn patterns from data instead of relying on hand-coded rules. Tom Mitchell's classic definition pins it down nicely: a program learns when its performance on some task `T`, measured by some metric `P`, improves with experience `E`. For us, `T` is "predict sales", `P` is something like RSS or `R^2`, and `E` is the Advertising dataset. We've been doing ML the whole time.
 
+![Banner reading ML Family above cartoon model characters: a curve, line, decision tree, and neural-network robot]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/ml-family.png' | relative_url }})
+
 ### Where Regression Fits
 
 ML is usually carved up into three big categories:
