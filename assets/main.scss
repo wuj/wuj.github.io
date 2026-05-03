@@ -23,18 +23,32 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-h1 { font-size: 2.25em; }
-h2 { font-size: 1.75em; }
-h3 { font-size: 1.375em; }
-h4 { font-size: 1.15em; }
-h5 { font-size: 1em; }
-h6 { font-size: 0.9em; color: #555; }
+// Single knob for proportionally scaling every heading level.
+// Scoped under .post-content / .page-content so these win over the
+// more-specific selectors minima ships for post bodies.
+$heading-scale: 0.8;
 
+.post-content, .page-content {
+  h1 { font-size: 2.25em * $heading-scale; }
+  h2 { font-size: 1.75em * $heading-scale; }
+  h3 { font-size: 1.375em * $heading-scale; }
+  h4 { font-size: 1.15em * $heading-scale; }
+  h5 { font-size: 1em * $heading-scale; }
+  h6 { font-size: 0.9em * $heading-scale; color: #555; }
+}
+
+// Site title: ~14% smaller than minima's default.
+// Note: minima sets .site-title font-size to roughly 1.625rem. Using `em`
+// here is a trap because em is relative to the parent's computed size, and
+// values under 1em ended up smaller than the body text rather than smaller
+// than minima's title. rem pins to the root font-size, giving a predictable
+// absolute target independent of parent context.
 .site-title,
 .site-title:visited {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
   font-weight: 600;
   letter-spacing: 0;
+  font-size: 1.4rem;
 }
 
 p {
@@ -43,6 +57,13 @@ p {
 
 .post-list-heading {
   display: none;
+}
+
+// Homepage post-link headings: ~14% smaller, matching the site-title reduction.
+// Note: minima sets font-size on .post-link (the anchor) directly, so we
+// have to override it on the anchor — sizing the parent h3 has no effect.
+.post-link {
+  font-size: 1.4rem;
 }
 
 .page-content a {

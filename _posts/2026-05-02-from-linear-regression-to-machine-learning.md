@@ -5,7 +5,7 @@ description: "Follow linear regression into machine learning, from least squares
 date: 2026-05-02
 last_modified_at: 2026-05-02
 categories: [meta]
-tags: []
+tags: [machine-learning, linear-regression, statistics, model-validation, gradient-descent, logistic-regression]
 published: true
 ---
 
