@@ -36,7 +36,7 @@ Before we can predict anything, we have to ask a smaller question: do two variab
 
 ![Detective examines two wavy data patterns with a magnifying glass]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/detective.png' | relative_url }})
 
-### Covariance and Pearson's R
+### Covariance and Pearson's r
 
 The first concept is covariance, which is the average product of centered values:
 
@@ -46,9 +46,9 @@ The intuition is simple. For each observation, ask whether `X` is above or below
 
 The problem with covariance is that its units depend on the units of `X` and `Y`. A covariance between TV ad spend and sales doesn't tell you whether the relationship is strong or weak, because the number has no natural scale.
 
-Pearson's correlation coefficient `R` fixes that by dividing covariance by the sample standard deviations of `X` and `Y`:
+Pearson's correlation coefficient `r` fixes that by dividing covariance by the sample standard deviations of `X` and `Y`:
 
-`R = Cov(X, Y) / (s_X * s_Y)`
+`r = Cov(X, Y) / (s_X * s_Y)`
 
 That standardization gives a unitless number bounded between `-1` and `1`. A value of `1` means perfect positive linear correlation, `-1` means perfect negative linear correlation, and `0` means no linear relationship. Now you can compare strength across very different kinds of variables on the same scale.
 
@@ -58,7 +58,7 @@ import numpy as np
 # Covariance between TV spend and sales (units depend on the variables)
 np.cov(advertising['TV'], advertising['sales'])[0, 1]
 
-# Pearson's R is the unitless, bounded version
+# Pearson's r is the unitless, bounded version
 np.corrcoef(advertising['TV'], advertising['sales'])[0, 1]
 # 0.7822
 ```
@@ -318,10 +318,10 @@ import statsmodels.formula.api as smf
 
 model = smf.ols('sales ~ TV + radio + newspaper', data=advertising).fit()
 print(model.params)
-# Intercept    2.939
-# TV           0.046
-# radio        0.189
-# newspaper   -0.001
+# Intercept    2.9389
+# TV           0.0458
+# radio        0.1885
+# newspaper   -0.0010
 ```
 
 Holding the other channels fixed, each additional `$1,000` of TV spend is associated with about `45.8` more units sold. Each additional `$1,000` of radio spend is associated with about `188.5` more units. In this fitted model, radio has a much larger coefficient per dollar than TV. These are still associations, not proven causes, unless the data came from a controlled experiment.
