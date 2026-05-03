@@ -10,6 +10,13 @@ The user handles commits and pushes. Do not run `git push`.
 
 Use casual and plain language that is easy to understand. All generated prose and code comments must be ASCII-only UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no emojis. Use hyphens only for real hyphenation, not as dash substitutes.
 
+Avoid filler words that gloss over the actual mechanism:
+
+- Do not describe things as "clean", "cleanly", or "cleaner" when reaching for general praise. These words skip past the specific detail that matters. Pick a word that names what is actually true: "unambiguous", "reversible", "well-defined", "deterministic", "easy to read", "few moving parts", "widely used", "modern", "small", "self-contained", and so on. If you cannot pick a more specific word, the sentence probably does not need the qualifier at all.
+- Do not write "X is doing the work" or "X is doing all the work" or "X does the heavy lifting". This pattern claims importance without explaining what X actually computes. Replace it with a verb that names the operation: "X computes the dot products", "X mixes the heads", "X applies the residual", "X turns scores into probabilities", and so on. If the sentence is summarizing causation, name the contribution explicitly ("X is one of the main mechanisms that pulls Y into Z's representation") rather than asserting that X is "the" or "the main" piece doing the work.
+
+Same principle generalizes: prefer concrete verbs and concrete nouns over vague praise or vague effort. If a phrase could be deleted without changing the meaning, delete it.
+
 ## Commands
 
 Ruby is pinned by `.ruby-version` (`3.3.4`); if the local Ruby does not match, use the user's Ruby version manager instead of changing the project pin casually.
