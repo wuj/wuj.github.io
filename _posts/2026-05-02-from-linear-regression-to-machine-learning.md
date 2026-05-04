@@ -69,7 +69,7 @@ One quick warning before we move on: a strong correlation doesn't mean one varia
 
 [![Mean machine gives the same baseline prediction to every visitor]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/mean-machine.png' | relative_url }})]({{ '/assets/images/2026-05-02-from-linear-regression-to-machine-learning/full/mean-machine.png' | relative_url }})
 
-Suppose you're a marketing analyst and you want to predict sales for a new market. If you know nothing else about that market, the most reasonable guess is just the average sales across the markets you have data for. That's a baseline prediction: a single horizontal line at the mean.
+Suppose you're a marketing analyst and you want to predict sales for a new market. If you know nothing else about that market, and you're measuring mistakes with squared error, the best single-number guess is the average sales across the markets you have data for. That's a baseline prediction: a single horizontal line at the mean.
 
 ```python
 baseline = advertising['sales'].mean()
@@ -223,7 +223,7 @@ Same answer the closed form gave us, no algebra required. The model just walked 
 A few gotchas to know about:
 
 - **The learning rate matters a lot.** Too small, and convergence drags on forever. Too big, and you overshoot the minimum and bounce around (or in bad cases, diverge entirely). Picking a good value is half the battle.
-- **Scale your features.** Notice we standardized TV before running the loop. Raw TV values go up to about `300`, while sales sits around `15`. If you skip the scaling, the gradient on `beta1` ends up huge compared to the gradient on `beta0`, and a learning rate that works for one parameter will blow up the other. Standardizing makes the loss surface more spherical and lets the steps stay balanced.
+- **Scale your features.** Notice we standardized TV before running the loop. Raw TV values go up to about `300`, so the gradient on `beta1` can be much larger than the gradient on `beta0`. A learning rate that behaves well for one parameter can blow up the other. Standardizing makes the loss surface better conditioned and lets the steps stay balanced.
 - **Real implementations are fancier.** Production code uses tricks like momentum, adaptive learning rates (Adam, RMSprop), and mini-batches that compute the gradient on small chunks of data instead of the full dataset. But the core loop is exactly what you just saw: look at the gradient, step downhill, repeat.
 
 This is also why the loss-function-and-minimize framing matters so much. For convex problems like ordinary least squares, gradient descent can converge to the global minimum when the learning rate is chosen well. For harder non-convex models, gradient descent and its cousins search for a good minimum, with no guarantee it's the best one. That optimization recipe is behind a lot of modern machine learning, from small regressions to large neural networks.
@@ -258,7 +258,7 @@ One caveat: a low `R^2` doesn't always mean `X` is useless. It can also mean the
 
 The slope and intercept that least squares produces aren't eternal truths. They're estimates from one particular sample of data. If you collected a different sample of `200` markets, you'd get slightly different numbers. So the natural follow-up: how much would the fitted line wiggle if you kept pulling similar datasets?
 
-The bootstrap answers that empirically, without leaning on any distributional assumptions about the noise. The recipe is:
+The bootstrap answers that empirically, without assuming the errors follow a neat normal distribution. It still relies on the original sample being reasonably representative, and on observations being independent enough that resampling rows makes sense. The recipe is:
 
 1. Resample the original data with replacement, keeping the same sample size.
 2. Refit the regression on the resampled data.
@@ -324,7 +324,7 @@ print(model.params)
 # newspaper   -0.0010
 ```
 
-Holding the other channels fixed, each additional `$1,000` of TV spend is associated with about `45.8` more units sold. Each additional `$1,000` of radio spend is associated with about `188.5` more units. In this fitted model, radio has a much larger coefficient per dollar than TV. These are still associations, not proven causes, unless the data came from a controlled experiment.
+Holding the other channels fixed, each additional `$1,000` of TV spend is associated with about `45.8` more units sold. Each additional `$1,000` of radio spend is associated with about `188.5` more units. In this fitted model, radio has a much larger fitted partial association per dollar than TV. These are still associations, not proven causes, unless the data came from a controlled experiment.
 
 ### Collinearity and the Newspaper Effect
 
@@ -347,7 +347,7 @@ print(advertising[['radio', 'newspaper']].corr().iloc[0, 1])
 # 0.354
 ```
 
-This is called collinearity, and it's one of the main things that makes multi-predictor coefficients tricky to read. The more two predictors move together, the harder it is for the model to separate their unique contributions.
+This is one version of the broader collinearity problem, and it's one of the main things that makes multi-predictor coefficients tricky to read. The radio-newspaper correlation here is only moderate, but the lesson still applies: the more two predictors move together, the harder it is for the model to separate their unique contributions. Newspaper's marginal relationship mostly disappears once radio is controlled for.
 
 ### Rising R^2 and Overfitting
 
@@ -389,7 +389,7 @@ plt.show()
 
 To make this fail mode super obvious, imagine the true relationship is actually quadratic, something like `y = 30 - 0.3x + 0.005x^2 + noise`. If you fit a straight line to that, the residuals don't come out random. They come out U-shaped: positive on the ends, negative in the middle. The errors have a pattern, which means the line is missing curvature that's really there.
 
-That's the whole signal. Whenever residuals show a pattern, your model needs to bend.
+That's the whole signal. Whenever residuals show a pattern, your model is missing some structure. Curvature is one possible fix, but the issue could also be an omitted predictor, an interaction, changing variance, or outliers.
 
 ### Nearest Neighbor Regression
 
@@ -515,7 +515,7 @@ For more complex models with lots of parameters, picking one knob isn't enough. 
 
 The basic idea: instead of just minimizing RSS, you minimize RSS plus a penalty on the size of the coefficients. Ridge uses an L2 penalty, while lasso uses an L1 penalty. The penalty discourages the model from leaning too hard on any single coefficient, which keeps it from chasing noise. Lasso goes a step further and can drive some coefficients all the way to zero, effectively dropping irrelevant predictors entirely. Because the penalty depends on coefficient size, you usually standardize features before using ridge or lasso.
 
-These methods deserve their own post to do justice, but the high-level message matters here: when complexity gets out of hand, you've got tools that make the model police itself.
+These methods deserve their own post to do justice, but the high-level message matters here: when complexity gets out of hand, you've got tools that shrink unnecessary complexity.
 
 ## From Regression to Machine Learning
 
@@ -570,7 +570,7 @@ Logistic regression is the shortest bridge from where we are now. It takes the s
 
 `g(z) = 1 / (1 + exp(-z))`
 
-That output is interpreted as the model's estimated probability that the label is `1`. To turn the probability into a class prediction, you pick a threshold (usually `0.5`).
+That output is interpreted as the model's estimated probability that the label is `1`. To turn the probability into a class prediction, you pick a threshold. `0.5` is the common default, but real projects often tune the threshold around false positives, false negatives, class imbalance, or business cost.
 
 ```python
 from sklearn.linear_model import LogisticRegression

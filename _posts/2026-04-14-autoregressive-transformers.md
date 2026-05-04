@@ -15,7 +15,7 @@ If you have used ChatGPT, Claude, or Gemini, the core text-generation model behi
 
 Under the hood, all of this is math. Your text gets chopped into tokens, the tokens get turned into vectors, and from that point on everything the model does is linear algebra: matrix multiplications, dot products, additions, and a couple of nonlinear "squashing" steps like softmax (which turns scores into probabilities) sprinkled in. The "intelligence" we see is the output of billions of learned numbers being multiplied against the numbers that represent your prompt. There is no hand-written grammar, no fact database wired into the core model, no if-statements about syntax.
 
-A quick note on the two models I'll bounce between. For tokenizer examples I'll use **cl100k_base**, the GPT-4-era tokenizer, because it's a widely-used modern reference. For everything that requires actually peeking inside a model (embeddings, attention weights, hidden states, logits) I'll use **GPT-2 small**, because it's small enough to load on a laptop and Hugging Face exposes every internal tensor. The specific token IDs differ between the two, but the shape of the pipeline is exactly the same.
+A quick note on the two models I'll bounce between. For tokenizer examples I'll use **cl100k_base**, the GPT-4-era tokenizer, because it's a widely-used modern reference. For everything that requires actually peeking inside a model (embeddings, attention weights, hidden states, logits) I'll use **GPT-2 small**, because it's small enough to load on a laptop and Hugging Face exposes every internal tensor. The specific token IDs differ between the two, and modern models vary in details like position encodings, normalization, and attention variants, but the broad shape of the pipeline is the same.
 
 This post grew out of a two-part tech talk I gave on the same material. If you'd rather flip through the slides, you can grab them here: [part 1 (tokens, embeddings, attention)]({{ "/assets/downloads/autoregressive-decoder-only-transformers-presentation-1.pdf" | relative_url }}) and [part 2 (layers, logits, generation)]({{ "/assets/downloads/autoregressive-decoder-only-transformers-presentation-2.pdf" | relative_url }}).
 
@@ -200,7 +200,7 @@ Vector addition is elementwise:
 [1.0 + 0.3, 2.0 + (-0.1)] = [1.3, 1.9]
 ```
 
-The same token at a different position lands somewhere different in embedding space. That is the whole trick: the model can now tell "the bank approved" apart from "approved the bank" without any extra machinery, just by reading the vector it gets for each slot.
+The same token at a different position lands somewhere different in embedding space. That is the whole trick: later layers now get position information they can use to tell "the bank approved" apart from "approved the bank", instead of seeing only an unordered bag of token vectors.
 
 ```python
 W_p = model.transformer.wpe.weight.detach().numpy()  # (1024, 768)
@@ -239,7 +239,7 @@ print(X.shape)                                # torch.Size([6, 768])
 
 ### Step 2: Layer Norm Before the Projections
 
-GPT-2 is "pre-norm": before doing anything else, it layer-normalizes `X`. That rescales each token's 768-dim vector to zero mean and unit variance, then applies a learned per-dimension scale and bias. The point is purely numerical: it keeps the dot products downstream from blowing up or collapsing.
+GPT-2 is "pre-norm": before doing anything else, it layer-normalizes `X`. That rescales each token's 768-dim vector to zero mean and unit variance, then applies a learned per-dimension scale and bias. A big reason is numerical stability: it keeps the dot products downstream from blowing up or collapsing, while the learned scale and bias still become part of the model's representation.
 
 ```python
 block = model.transformer.h[11]
@@ -380,7 +380,7 @@ weights = torch.softmax(scores, dim=-1)       # (12, seq_len, seq_len)
 
 [![Attention weights mixing value vectors into a weighted context sum]({{ '/assets/images/2026-04-14-autoregressive-transformers/context-soup.png' | relative_url }})]({{ '/assets/images/2026-04-14-autoregressive-transformers/full/context-soup.png' | relative_url }})
 
-Multiply attention weights by V and sum across the key axis. Each token's output is a blend of every (allowed) token's V vector, weighted by how much it attended to them. That blend is the new, context-aware representation for the position.
+Multiply attention weights by V and sum across the key axis. Each token's per-head output is a blend of every (allowed) token's V vector, weighted by how much it attended to them. That blend is context-aware, but it is not the finished representation for the position yet.
 
 For the 2D sample with V = X, " bank"'s output is computed component by component:
 
@@ -474,10 +474,10 @@ Two things jump out when you actually plot this. First, the two " capital" token
 
 ### The Last Position Carries the Answer
 
-That last-position drift is not an accident. At generation time, only the last position's vector gets used to pick the next token. Every other position exists to feed signal forward into that one through attention. The early layers gather local context, the middle layers blend it, and by the time you reach the top of the stack the last position's vector encodes whatever the model "thinks" the next token should be.
+That last-position drift is not an accident. At generation time, only the last position's vector gets used to pick the next token. The earlier positions provide the context that position can attend to; during cached generation, their K/V tensors are what persist and feed the next step. The early layers gather local context, the middle layers blend it, and by the time you reach the top of the stack the last position's vector encodes whatever the model "thinks" the next token should be.
 
 ```python
-final_state = out.hidden_states[-1][0, -1]    # (768,)
+final_state = out.hidden_states[-1][0, -1]    # (768,), already post-ln_f in Hugging Face GPT-2
 ```
 
 Takeaway: layers are how the model builds up meaning incrementally. No single layer figures out the answer; 12 layers of residual deltas do.
@@ -488,7 +488,7 @@ Takeaway: layers are how the model builds up meaning incrementally. No single la
 
 [![Final hidden state converted through logits and softmax into next-token probabilities]({{ '/assets/images/2026-04-14-autoregressive-transformers/next-token-vending-machine.png' | relative_url }})]({{ '/assets/images/2026-04-14-autoregressive-transformers/full/next-token-vending-machine.png' | relative_url }})
 
-After 12 layers, the last position has a 768-dim vector that's supposed to encode "what comes next". We still need to turn that vector into a probability distribution over the 50,257 tokens in the vocabulary. GPT-2 first runs the final hidden state through one more layer norm (`ln_f`) to keep the scale well-behaved, then multiplies by the unembedding matrix (the embedding matrix transposed, since GPT-2 ties weights) to get one logit per token, then takes softmax to get probabilities. A logit is just the raw, unnormalized score the model assigns to each token before softmax. Bigger means "more likely", but the numbers are not probabilities yet: they can be negative or larger than 1. Softmax is what squashes them into a proper probability distribution that sums to 1. The unembedding step is the mirror image of the input embedding.
+After 12 layers, the last position has a 768-dim vector that's supposed to encode "what comes next". We still need to turn that vector into a probability distribution over the 50,257 tokens in the vocabulary. Inside GPT-2's forward pass, the raw output of the last block first runs through one more layer norm (`ln_f`) to keep the scale well-behaved, then gets multiplied by the unembedding matrix (the embedding matrix transposed, since GPT-2 ties weights) to get one logit per token, then softmax turns those logits into probabilities. A logit is just the raw, unnormalized score the model assigns to each token before softmax. Bigger means "more likely", but the numbers are not probabilities yet: they can be negative or larger than 1. Softmax is what squashes them into a proper probability distribution that sums to 1. The unembedding step is the mirror image of the input embedding.
 
 For the sample 6-word vocab and 2D embeddings, suppose the final last-position state is `h = [1.5, 1.5]`. The unembedding matrix is `E.T` with shape `(2, 6)`, and the logit for each token is the dot product of `h` with that token's embedding row:
 
@@ -575,7 +575,7 @@ print(tok.decode(ids))
 # Paris. The capital of the United States is Washington
 ```
 
-Conceptually, each step reruns the entire forward pass on the entire sequence so far. In practice, production systems use KV caching: the K and V tensors at every layer for previous tokens are stored and reused, so only the new token's per-layer computation (its attention against the cached K/V, plus its FFN, plus the final logits) has to be done at each step. That is much cheaper than recomputing the full sequence, and the next-token distribution comes out the same.
+Conceptually, each step reruns the entire forward pass on the entire sequence so far. In practice, production systems use KV caching: the K and V tensors at every layer for previous tokens are stored and reused. On each new step, the model computes the new token's Q/K/V, appends its K/V to the cache, runs its attention against the cached K/V, applies the rest of that token's layer work, and computes the final logits. That is much cheaper than recomputing the full sequence, and in eval mode it gives the same next-token distribution apart from tiny implementation-level numerical differences.
 
 The core text-generation model in mainstream chatbots is usually some scaled-up version of this autoregressive decoder loop. Architectures and serving stacks differ in the details, but the shape of the inner loop is the same: a transformer-based decoder, run autoregressively, one token at a time.
 

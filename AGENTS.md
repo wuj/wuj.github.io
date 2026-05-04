@@ -37,8 +37,33 @@ emojis. Use hyphens only for real hyphenation, not as dash substitutes.
 Prefer concrete verbs and nouns over vague praise or vague effort. Avoid
 "clean", "cleanly", or "cleaner" as general praise; name the specific quality
 instead. Avoid phrases like "X is doing the work" or "X does the heavy lifting";
-name the operation X performs. If a phrase could be deleted without changing
-the meaning, delete it.
+name the operation X performs. Avoid "X carries the weight", "the weight falls
+on X", "X bears the weight", "carries the load", and similar vague-effort
+metaphors; name the contribution instead. Avoid "quiet", "quietly", "silent",
+or "silently" when they gesture at "you would not notice" without saying what
+actually happens; either name the mechanism or delete the qualifier. If the
+point is that something is hard to notice, say what makes it hard to notice. If
+a phrase could be deleted without changing the meaning, delete it.
+
+Codex must not use the broader family of essay-register filler that praises a
+thing without saying what is true about it. Specific patterns to drop: "X earns
+its keep" (say what X buys you), "the real payoff" (say what the payoff is), "X
+shines when..." (say what makes X well-suited - usually "X is well-suited
+when..." or describe the concrete property), "the headline benefit / feature"
+(just describe the benefit), "X reads cleanly / fluently" (covered by the clean
+rule above; name the concrete property), "X is the connective tissue" or other
+body-part metaphors ("the bones are the same", "the heart of"), "papercuts" as
+a stand-in for "small repetitive annoyances" (name the annoyance), "free win",
+"earns its place", "punches above its weight", "out of the gate", "comes into
+its own", "gets out of the way", "just works". Rule of thumb: if you cannot
+replace the phrase with a sentence that names the specific property, mechanism,
+or operation, the phrase is doing decoration and not communication. Cut it or
+rewrite it.
+
+Never write filler phrases like "do the thing", "do the obvious thing", or
+similar uses of "thing" that avoid naming the action. Say the actual action:
+render the page, validate the input, copy the file, update the dependency, or
+whatever operation is meant.
 
 ## Commands
 
@@ -52,9 +77,49 @@ bundle exec jekyll serve
 JEKYLL_ENV=production bundle exec github-pages build
 ```
 
+On Windows PowerShell, use PowerShell environment syntax instead of Unix inline
+environment assignment:
+
+```powershell
+$env:JEKYLL_ENV='production'; bundle exec github-pages build
+```
+
+If `bundle` is not found, report that Bundler is missing from PATH. Do not
+change the Ruby pin, install gems globally, or add generated lockfiles unless
+the user asks.
+
 There are no tests, linters, or CI scripts. For content or config changes,
 run the production build when practical. For visual checks, run the local
 server at `http://127.0.0.1:4000`.
+
+### Python snippets on Windows
+
+Do not assume `python` or `py` points to a usable interpreter on Windows; they
+may resolve to Microsoft Store aliases. If that happens, check for the user's
+local Python at:
+
+```powershell
+C:\Users\jeffr\AppData\Local\Python\bin\python.exe
+```
+
+For one-off Python checks that need packages not installed locally, prefer
+ephemeral `uv run --with ...` commands from stdin instead of installing into
+the repo or creating temporary files:
+
+```powershell
+@'
+# python code here
+'@ | uv run --with tiktoken --with transformers --with torch python -
+```
+
+For GPT-2 attention inspection with newer `transformers`, load the model with
+eager attention when using `output_attentions=True`:
+
+```python
+GPT2LMHeadModel.from_pretrained("gpt2", attn_implementation="eager")
+```
+
+Without eager attention, some backends may not return attention tensors.
 
 ### Prolog snippets on Windows
 
