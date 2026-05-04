@@ -9,30 +9,36 @@ This is the GitHub Pages user site for `wuj.github.io`, served at
 `https://jeffwu.com`. It is a small Jekyll site built on the default
 `minima` theme.
 
-Most structure comes from minima. The local customization surface is
-deliberately narrow:
+Most structure comes from minima. Keep local customization narrow:
+`_config.yml` for site and GitHub Pages settings, `_posts/` for published
+posts, `assets/main.scss` for typography, colors, dark mode, and Rouge syntax
+highlighting, `docs/` for excluded repo notes, and `_unlisted/` for future
+non-post content that should not be listed with `site.posts`.
 
-- `_config.yml` holds site metadata, GitHub Pages settings, plugin config,
-  defaults, and excludes.
-- `index.md` uses minima's `home` layout and contains a short intro above
-  the post list.
-- `_posts/` holds normal published posts.
-- `tags.md` generates a simple tag index.
-- `assets/main.scss` imports minima and layers site typography, colors,
-  dark mode, and code highlighting on top.
-- `docs/` contains repo notes and is excluded from the built site.
-- `_unlisted/` is reserved for future non-post content that should not be
-  listed with `site.posts`.
-
-Keep the repo small. Commit only files needed for the site, GitHub Pages
-compatibility, or local development. Do not run `git push`; the user handles
-commits and pushes.
+Keep the repo small. Change only files needed for the site, GitHub Pages
+compatibility, or local development. Do not run `git commit` or `git push`;
+the user handles all commits and pushes.
 
 ## Prose
 
-Use casual, plain language. Generated prose and code comments must be ASCII-only
-UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no
-ellipsis characters, and no emojis.
+When editing prose, first scan the surrounding text. If the document already
+has a substantial amount of prose, infer its overall style and match it. If
+there is not enough existing prose to guide the edit, use a casual,
+conversational style. Prefer everyday words, short sentences, contractions when
+they sound natural, and direct explanations that feel like one person talking
+to another. Avoid academic, corporate, or overly polished phrasing unless the
+topic needs that tone. Aim for a layman-friendly feel: assume the reader is
+smart but may not know the jargon, explain specialized terms the first time
+they matter, and use simple examples when they make an idea easier to follow.
+Generated prose and code comments must be ASCII-only UTF-8: straight quotes,
+no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no
+emojis. Use hyphens only for real hyphenation, not as dash substitutes.
+
+Prefer concrete verbs and nouns over vague praise or vague effort. Avoid
+"clean", "cleanly", or "cleaner" as general praise; name the specific quality
+instead. Avoid phrases like "X is doing the work" or "X does the heavy lifting";
+name the operation X performs. If a phrase could be deleted without changing
+the meaning, delete it.
 
 ## Commands
 
@@ -52,47 +58,37 @@ server at `http://127.0.0.1:4000`.
 
 ### Prolog snippets on Windows
 
-Do not assume `swipl` is installed on the Windows PATH. This machine has worked
-with Docker and the local `swipl:latest` image. For quick checks of Prolog or
-DCG examples, pipe a PowerShell here-string into SWI-Prolog inside Docker:
+Do not assume `swipl` is installed on the Windows PATH. For quick Prolog or DCG
+checks, pipe a PowerShell here-string into Docker:
 
 ```powershell
-$program = @'
-s --> [a].
-
-run :-
-    phrase(s, [a]),
-    halt.
-'@
 $program | docker run --rm -i swipl:latest swipl -q -g "['user'], run"
 ```
 
-Keep these checks ephemeral. Prefer stdin like the example above over adding
-temporary files to the repo. Include `halt` in the goal or in `run/0` so the
-container exits cleanly. When checking several snippets from a post, use
-distinct predicate names or suffixes to avoid accidental name and arity clashes.
+Keep checks ephemeral, prefer stdin over temporary files, include `halt`, and
+use distinct predicate names when checking several snippets.
 
 ## Constraints
 
 - Keep `github-pages "~> 232"` pinned in `Gemfile`. Before changing it,
   check <https://pages.github.com/versions/> and update `.ruby-version`
-  only if GitHub Pages has moved its Ruby version.
+  only if the GitHub Pages build Ruby has moved. Do not loosen the pin.
 - Keep `webrick` in `Gemfile`; Ruby 3.0+ needs it for local serving.
 - Keep `jekyll-feed`, `jekyll-seo-tag`, and `jekyll-sitemap` enabled in
-  `_config.yml`.
+  `_config.yml`; minima's head include calls the feed and SEO Liquid tags.
 - Keep `baseurl: ""` in `_config.yml` for this user/custom-domain site.
 - Keep `email: hello@jeffwu.com` in `_config.yml`; this address is
   intentionally public.
 - Keep `Gemfile.lock` ignored unless the project policy changes.
-- Do not add empty `about.md`, `404.html`, `_layouts/`, `_includes/`, or
-  asset files just to make the tree look complete.
 - If overriding a minima theme file is necessary, copy only the specific
   file from the installed minima gem and edit the smallest useful surface.
+- Do not add empty `about.md`, `404.html`, `_layouts/`, `_includes/`, or asset
+  files just to make the tree look complete. Minima supplies those theme files.
 
 ## Editing
 
 Prefer minimal, targeted changes that preserve GitHub Pages compatibility.
-Use existing Jekyll, Liquid, SCSS, and minima conventions before adding new
+Use existing Jekyll, Liquid, SCSS, and minima conventions before adding custom
 structure.
 
 Avoid decorative dependencies, generated artifacts, local editor state,

@@ -4,11 +4,15 @@
 
 This is a GitHub Pages user site (`wuj.github.io`) built on the `minima` theme. The repo aims to stay small: commit only files needed for the site to render, for GitHub Pages compatibility, or for the local development toolchain. Visual customization is concentrated in `assets/main.scss` (typography scale, color palette, dark mode, Rouge syntax highlighting). No minima `_layouts/` or `_includes/` files are overridden.
 
-The user handles commits and pushes. Do not run `git push`.
+The user handles commits and pushes. Do not run `git commit` or `git push`.
 
 ## Prose
 
-Use casual and plain language that is easy to understand. All generated prose and code comments must be ASCII-only UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no emojis. Use hyphens only for real hyphenation, not as dash substitutes.
+Before writing or editing prose in a file, read the surrounding prose. If the file already has a substantial amount of writing, match its voice: sentence length, formality, use of contractions, jargon level, paragraph rhythm, how it addresses the reader. Adapt to what is there rather than imposing a different style on top of it. Only fall back to the default voice below when the file is new, nearly empty, or has too little prose to establish a style.
+
+Default voice (use when there is nothing to match): write so a curious non-expert can follow along. Aim for the feel of a friend explaining something over coffee, not a textbook or a paper. Short sentences, contractions, plain words. When a technical term shows up for the first time, give a quick gloss in everyday language before leaning on it. Prefer concrete examples and analogies over abstract definitions. Skip warm-up phrases and essay-style intros ("In this post we will explore..."); just say the thing. It is fine to start sentences with "and", "but", or "so". If a sentence sounds stiff when read out loud, or would make a smart friend without the background reach for a dictionary, rewrite it.
+
+All generated prose and code comments must be ASCII-only UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no emojis. Use hyphens only for real hyphenation, not as dash substitutes.
 
 Avoid filler words that gloss over the actual mechanism:
 
