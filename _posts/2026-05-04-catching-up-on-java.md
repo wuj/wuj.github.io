@@ -9,7 +9,7 @@ tags: [java, language-features, generics, records, pattern-matching, streams, la
 published: true
 ---
 
-Welcom to the 2026 edition of Catching up on Java! If you last wrote Java around 2010, you've probably noticed that it has changed quite a bit since then. The changes are mostly additive rather than breaking, but there are enough of them that a modern codebase will look unfamiliar at first glance. Lambdas, records, pattern matching, virtual threads. The class system, the type system, and the JVM are still recognizable; the syntax people reach for and the libraries they call have changed.
+Welcome to the 2026 edition of Catching up on Java! If you last wrote Java around 2010, you've probably noticed that it has changed quite a bit since then. The changes are mostly additive rather than breaking, but there are enough of them that a modern codebase will look unfamiliar at first glance. Lambdas, records, pattern matching, virtual threads. The class system, the type system, and the JVM are still recognizable; the syntax people reach for and the libraries they call have changed.
 
 This post is a tour of the language and standard library changes worth knowing about, specifically for someone who knew Java well in the early 2000s and hasn't kept close tabs since. I'm not going to list every change. That would be far too much work and impossible in a single blog article. Instead, I'll just focus on the changes that stood out to me.
 
@@ -124,7 +124,7 @@ var users = List.of("ada", "alan", "grace");
 var line = reader.readLine();
 ```
 
-Locals only. Not fields, not method parameters, not return types. It's a compile-time inference, not a runtime feature, and not C#-style `dynamic`. The variable still has a single static type; the compiler just figured it out for you.
+Local variables only. Not fields, not method parameters, not return types. It's a compile-time inference, not a runtime feature, and not C#-style `dynamic`. The variable still has a single static type; the compiler just figured it out for you. Java 11 later added `var` for implicitly typed lambda parameters, but that is a narrow lambda-specific form, not a general method-signature feature.
 
 The judgment call is when to use it. Where the right-hand side already names the type, `var` removes noise:
 
@@ -146,7 +146,7 @@ var list = new ArrayList<>();   // ArrayList<Object>, almost certainly not what 
 
 Either give the diamond a target type, or write the parameter explicitly: `var list = new ArrayList<String>();`.
 
-> **When to reach for it.** Use `var` when the right-hand side already names the type (a constructor call, a static factory like `List.of(...)`, a `new Foo()`). Avoid it when the type comes from a method whose name doesn't make the return type obvious; a reader shouldn't have to chase the declaration to know what `result` is. Avoid it for numeric literals where the inferred type matters (`var x = 1` is `int`, not `long`). And remember it's locals only - it can't appear in field declarations, method signatures, or lambda parameter lists.
+> **When to reach for it.** Use `var` when the right-hand side already names the type (a constructor call, a static factory like `List.of(...)`, a `new Foo()`). Avoid it when the type comes from a method whose name doesn't make the return type obvious; a reader shouldn't have to chase the declaration to know what `result` is. Avoid it for numeric literals where the inferred type matters (`var x = 1` is `int`, not `long`). And remember the boundary: Java 10 `var` is for local variables, not field declarations, method signatures, or return types. Java 11's lambda form (`(var x, var y) -> ...`) is the special case, and all lambda parameters have to use `var` or none of them can.
 
 ## Expression-Oriented Code
 
@@ -157,7 +157,7 @@ The bigger shift over the last decade has been Java moving from a statement-orie
 [JEP 126](https://openjdk.org/jeps/126) introduced lambdas. Before them, passing behavior around meant writing an anonymous inner class:
 
 ```java
-List<String> names = new ArrayList<>(List.of("ada", "alan", "grace"));
+List<String> names = new ArrayList<>(Arrays.asList("ada", "alan", "grace"));
 Collections.sort(names, new Comparator<String>() {
     @Override
     public int compare(String a, String b) {
@@ -169,7 +169,7 @@ Collections.sort(names, new Comparator<String>() {
 A lambda expresses the same comparator without the boilerplate:
 
 ```java
-List<String> names = new ArrayList<>(List.of("ada", "alan", "grace"));
+List<String> names = new ArrayList<>(Arrays.asList("ada", "alan", "grace"));
 names.sort((a, b) -> a.length() - b.length());
 ```
 
@@ -179,7 +179,9 @@ When the lambda body is just a call to an existing method, you can use a [method
 
 ```java
 names.sort(Comparator.comparingInt(String::length));
-List<Integer> lengths = names.stream().map(String::length).toList();
+List<Integer> lengths = names.stream()
+    .map(String::length)
+    .collect(Collectors.toList());
 names.forEach(System.out::println);
 ```
 
@@ -300,7 +302,7 @@ This is the cluster of features that most changes how new Java code is shaped. I
 
 ### Records (Java 16)
 
-Records exist to fix a specific, long-standing complaint about Java: writing a small immutable value class was wildly out of proportion to what the class actually meant. A type that represented "a pair of integer coordinates" needed two final fields, a constructor that assigned them, two accessors, an `equals` method that checked both components, a `hashCode` method that combined them, and a `toString` that printed them. Sixty lines of code to express what was conceptually two integers and a name. Worse, every one of those sixty lines was a place where the implementation could drift out of sync with the intent: an `equals` that forgot a new field, a `hashCode` that didn't include a field that `equals` did, a constructor that assigned in the wrong order. IDEs could generate the boilerplate, but generated code still has to be read, reviewed, and maintained.
+Records exist to fix a specific, long-standing complaint about Java: writing a small value class was wildly out of proportion to what the class actually meant. A type that represented "a pair of integer coordinates" needed two final fields, a constructor that assigned them, two accessors, an `equals` method that checked both components, a `hashCode` method that combined them, and a `toString` that printed them. Sixty lines of code to express what was conceptually two integers and a name. Worse, every one of those sixty lines was a place where the implementation could drift out of sync with the intent: an `equals` that forgot a new field, a `hashCode` that didn't include a field that `equals` did, a constructor that assigned in the wrong order. IDEs could generate the boilerplate, but generated code still has to be read, reviewed, and maintained.
 
 The pre-record landscape was full of partial fixes. Many teams used Lombok's `@Value` or `@Data` annotations to generate the boilerplate at compile time. Others used `AutoValue` or built abstract classes with hand-rolled builders. Each of these solved the symptom but added a dependency, a build-time code generator, or both. Records solve the underlying problem in the language itself.
 
@@ -310,7 +312,7 @@ The pre-record landscape was full of partial fixes. Many teams used Lombok's `@V
 public record Point(int x, int y) {}
 ```
 
-That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. There is no mutable state, no inheritance, and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
+That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. The record's own fields can't be reassigned, but immutability is shallow: a component can still refer to a mutable object unless you make a defensive copy. There is no inheritance and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
 
 You can add behavior:
 
@@ -324,7 +326,7 @@ public record Point(int x, int y) {
 }
 ```
 
-Methods are fine; what records discourage is hidden state. You can declare static fields and static methods, but you can't add instance fields beyond the components - if a value isn't a declared component, it can't be part of the record's identity, and the language refuses to let you smuggle one in.
+Methods are fine; what records discourage is hidden state. You can declare static fields and static methods, but you can't add instance fields beyond the components - if a value isn't a declared component, it can't be part of the record's identity, and the language refuses to let you add it.
 
 You can also validate components in a [compact constructor](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4), which runs before the canonical constructor assigns the fields:
 
@@ -338,13 +340,13 @@ public record Range(int low, int high) {
 }
 ```
 
-The compact constructor doesn't list parameters or perform assignment; it just lets you validate or normalize the incoming values, after which the language assigns them to the fields in order. You can also override the canonical constructor explicitly if you need to, and you can add additional constructors that delegate to the canonical one with `this(...)`.
+The compact constructor doesn't list parameters or perform assignment; it just lets you validate or normalize the incoming values, after which the language assigns them to the fields in order. You can also declare the canonical constructor explicitly if you need to, and you can add additional constructors that delegate to the canonical one with `this(...)`.
 
 A few constraints to know. Records can't extend another class (they implicitly extend [`java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html)) but they can implement interfaces. Records aren't a substitute for entities with mutable lifecycle - they're for data, not state. And because the components are part of the public API by name (the accessors take their names from the components), renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
-The bigger purpose, beyond the boilerplate fix, is what records enable elsewhere in the language. Pattern matching for switch destructures records by component. Sealed types plus records give you closed algebraic data types. Stream pipelines that produce intermediate value tuples become much easier to write because you can define a small record inline as a return type instead of wrestling with `Map.Entry` or `Object[]`. Records were introduced to remove the boilerplate around immutable value classes, but they ended up being a building block several other features build on.
+The bigger purpose, beyond the boilerplate fix, is what records enable elsewhere in the language. Pattern matching for switch destructures records by component. Sealed types plus records give you closed algebraic data types. Stream pipelines that produce intermediate value tuples become much easier to write because you can define a small record inline as a return type instead of wrestling with `Map.Entry` or `Object[]`. Records were introduced to remove the boilerplate around transparent value carriers, but they ended up being a building block several other features build on.
 
-> **When to reach for it.** Use records for any immutable value carrier: DTOs, query results, parameter bundles, coordinate types, multi-value return values from helper methods. The constraint that they're final and have all-public accessors makes them a poor fit for ORM entities or anything that needs hidden state. The other tradeoff is that record components are part of the public API by name, so renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
+> **When to reach for it.** Use records for simple value carriers: DTOs, query results, parameter bundles, coordinate types, multi-value return values from helper methods. If a component refers to mutable data, make a defensive copy in the constructor if callers should not be able to mutate the record's observable state. The constraint that records are final and have all-public accessors makes them a poor fit for ORM entities or anything that needs hidden state. The other tradeoff is that record components are part of the public API by name, so renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
 ### Pattern matching for instanceof (Java 16)
 
@@ -543,21 +545,23 @@ Comparator<String> byLength = new Comparator<>() {       // Java 9+
 };
 ```
 
-**Target-type inference got dramatically better in Java 8.** Pre-8, chained generic calls often needed an explicit type witness:
+**Target-type inference got dramatically better in Java 8.** Pre-8, generic calls used fewer target contexts, so calls nested inside method arguments often needed an explicit type witness:
 
 ```java
-// Pre-8: the compiler can't infer T for emptyList() from the assignment context.
-List<String> empty = Collections.<String>emptyList();
+void processStringList(List<String> xs) { ... }
+
+// Pre-8: the compiler can't infer T for emptyList() from the method argument.
+processStringList(Collections.<String>emptyList());
 ```
 
-Java 8's improved inference uses the surrounding context (assignment target, method parameter type, lambda return type) to drive inference through a chain. This is what makes modern stream code work without annotation:
+Java 8's improved inference uses more surrounding context (method parameter type, lambda return type, and other target types) to drive inference through a chain. This is what makes modern stream code work without annotation:
 
 ```java
 Map<Integer, List<String>> byLength = names.stream()
     .collect(Collectors.groupingBy(String::length));
 ```
 
-That call infers `T = String`, `K = Integer`, `V = List<String>` from context. Pre-8 you'd have written `Collectors.<String, Integer>groupingBy(...)` to make it type-check. The change rarely gets called out by name, but it's the reason modern stream chains type-check without explicit type witnesses scattered through them.
+That call infers the stream element type and the collector's key and result types from context. In older code, the same shape of nested call often needed explicit type witnesses. The change rarely gets called out by name, but it's a big reason modern stream chains type-check without extra annotations scattered through them.
 
 **The `var` gotcha.** Already mentioned in the syntax section, worth restating in a generics frame:
 
@@ -616,7 +620,7 @@ This is an honest limitation. Don't expect Scala-level pattern power over generi
 ```java
 <R, A> R collect(Collector<? super T, A, R> collector);                     // Stream.collect
 <U> CompletableFuture<U> thenApply(Function<? super T, ? extends U> fn);    // CompletableFuture
-<T> Optional<T> map(Function<? super T, ? extends U> mapper);               // Optional
+<U> Optional<U> map(Function<? super T, ? extends U> mapper);               // Optional
 <T> HttpResponse<T> send(HttpRequest req, BodyHandler<T> handler);          // HttpClient
 ```
 
@@ -649,10 +653,10 @@ List<String> activeNames = users.stream()
     .filter(User::isActive)
     .map(u -> u.name().toUpperCase())
     .sorted()
-    .toList();
+    .collect(Collectors.toList());
 ```
 
-The intermediate operations (`filter`, `map`, `sorted`, `distinct`, `limit`, `peek`) are lazy and return a new stream. The terminal operation (`toList`, `forEach`, `reduce`, `count`, `findFirst`, `collect`) drives the pipeline and produces a result. A stream is consumed once; trying to use it again throws `IllegalStateException`.
+The intermediate operations (`filter`, `map`, `sorted`, `distinct`, `limit`, `peek`) are lazy and return a new stream. The terminal operation (`collect`, `forEach`, `reduce`, `count`, `findFirst`, `toList`) drives the pipeline and produces a result. A stream is consumed once; trying to use it again throws `IllegalStateException`. The example uses Java 8's `collect(Collectors.toList())`; Java 16 added the shorter `Stream.toList()`.
 
 Grouping and partitioning go through [`Collectors`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collectors.html):
 
@@ -695,7 +699,7 @@ String display = maybe.map(User::name).orElse("unknown");
 
 The useful methods: `map`, `flatMap`, `filter` for transformation; `orElse`, `orElseGet`, `orElseThrow` for unwrapping; `ifPresent`, `ifPresentOrElse` for side-effecting use. Avoid `get()` - it throws if empty, and the same call written with `orElseThrow(...)` is clearer about why.
 
-A few well-known gotchas. `Optional.of(null)` throws (use `ofNullable`). `Optional` is `Serializable` only by accident on its implementation - don't put it in fields you persist. And the constructor for `Optional` is private; the factories (`of`, `ofNullable`, `empty`) are the only way in.
+A few well-known gotchas. `Optional.of(null)` throws (use `ofNullable`). `Optional` is a value-based class and does not implement `Serializable`, so don't put it in fields you persist. And the constructor for `Optional` is private; the factories (`of`, `ofNullable`, `empty`) are the only way in.
 
 > **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections - return an empty list, not `Optional<List<T>>`. The whole feature is contested; plenty of teams use it heavily and plenty consider it overused. The pragmatic rule that holds up: return-type only, and only when absence is a genuine, expected outcome.
 
@@ -753,7 +757,7 @@ Concurrency deserves its own post, but two changes are worth naming here so you 
 
 `CompletableFuture` (Java 8) is the composable async story. It replaced most uses of the older `Future` for callback-style chaining and combination of asynchronous computations.
 
-The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can spawn millions of them. For request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and you get the throughput characteristics that previously required callback-heavy or reactive-style rewrites. Structured concurrency and scoped values are the surrounding pieces still being finalized.
+The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can spawn millions of them. For request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and you get the throughput characteristics that previously required callback-heavy or reactive-style rewrites. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
 
 ## Tooling and Packaging, in Brief
 
@@ -778,6 +782,6 @@ The generics story is interesting because the feature itself was already there i
 
 If you want a starting place: read the `java.time` package summary, then the records JEP, then write one small program. A reasonable one is a single-file script that uses virtual threads and the new `HttpClient` to fan out a handful of HTTP requests. It's about thirty lines, it touches three of the changes covered in this post, and the experience of writing it is the fastest way to recalibrate what modern Java feels like.
 
-You don't need to switch your production code to Java 21 to get value out of any of this. Most of the syntax-level features (records, sealed types, switch expressions, text blocks, pattern matching) are available at Java 17, which has been the default LTS for several years and is what most teams are on now. The library additions go back further: streams, `Optional`, and `java.time` are Java 8, which means even conservative shops have had access to them for a decade. The biggest practical shift, virtual threads, does require Java 21, and is the one feature where moving the version genuinely changes what your application can do rather than just how its code reads.
+You don't need to switch your production code to the newest JDK to get value out of any of this. Java 17 gets you records, sealed types, switch expressions, text blocks, and pattern matching for `instanceof`. Java 21 gets you finalized pattern matching for `switch`, record patterns, virtual threads, and sequenced collections. Java 25 is the current Oracle LTS as of May 2026 and adds finalized scoped values, while Java 26 keeps structured concurrency in preview. The library additions go back further: streams, `Optional`, and `java.time` are Java 8, which means even conservative shops have had access to them for a decade. The biggest practical shift, virtual threads, does require Java 21, and is the one feature where moving the version genuinely changes what your application can do rather than just how its code reads.
 
 Java has been a much-improved language for some time now, the changes are largely additive, and if you stopped paying attention around 2010 there's about a weekend's worth of reading to get caught up on what's worth using.
