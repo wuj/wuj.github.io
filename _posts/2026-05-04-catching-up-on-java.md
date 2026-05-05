@@ -9,9 +9,13 @@ tags: [java, language-features, generics, records, pattern-matching, streams, la
 published: true
 ---
 
+[![Time traveler stepping from Java 2010 into a modern Java 2026 city]({{ '/assets/images/2026-05-04-catching-up-on-java/01-java-time-traveller.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/01-java-time-traveller.png' | relative_url }})
+
 Welcome to the 2026 edition of Catching up on Java! If you last wrote Java around 2010, you've probably noticed that it has changed quite a bit since then. The changes are mostly additive rather than breaking, but there are enough of them that a modern codebase will look unfamiliar at first glance. Lambdas, records, pattern matching, virtual threads. The class system, the type system, and the JVM are still recognizable; the syntax people reach for and the libraries they call have changed.
 
 This post is a tour of the language and standard library changes worth knowing about, specifically for someone who knew Java well in the early 2000s and hasn't kept close tabs since. I'm not going to list every change. That would be far too much work and impossible in a single blog article. Instead, I'll just focus on the changes that stood out to me.
+
+[![Boilerplate cleanup salon replacing old Java verbosity with smaller syntax]({{ '/assets/images/2026-05-04-catching-up-on-java/02-boilerplate-cleanup-salon.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/02-boilerplate-cleanup-salon.png' | relative_url }})
 
 ## The Small Syntactic Wins
 
@@ -44,6 +48,8 @@ try (BufferedReader reader = new BufferedReader(new FileReader("data.txt"))) {
     return reader.readLine();
 }
 ```
+
+[![Resource butler closing files, sockets, and database connections after a try-with-resources block]({{ '/assets/images/2026-05-04-catching-up-on-java/03-resource-butler.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/03-resource-butler.png' | relative_url }})
 
 The resource is declared in the `try` header, and the compiler generates the close-with-suppressed-exception machinery for you. Anything implementing [`AutoCloseable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/AutoCloseable.html) works. You can declare more than one resource, separated by semicolons; they close in reverse order.
 
@@ -149,6 +155,8 @@ Either give the diamond a target type, or write the parameter explicitly: `var l
 
 > **When to reach for it.** Use `var` when the right-hand side already names the type (a constructor call, a static factory like `List.of(...)`, a `new Foo()`). Avoid it when the type comes from a method whose name doesn't make the return type obvious; a reader shouldn't have to chase the declaration to know what `result` is. Avoid it for numeric literals where the inferred type matters (`var x = 1` is `int`, not `long`). And remember the boundary: Java 10 `var` is for local variables, not field declarations, method signatures, or return types. Java 11's lambda form (`(var x, var y) -> ...`) is the special case, and all lambda parameters have to use `var` or none of them can.
 
+[![Expression machine turning legacy statements into lambdas, switch expressions, and text blocks]({{ '/assets/images/2026-05-04-catching-up-on-java/04-expressions.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/04-expressions.png' | relative_url }})
+
 ## Expression-Oriented Code
 
 The bigger shift over the last decade has been Java moving from a statement-oriented language toward one where more constructs return values. Three features account for most of that shift: lambdas, switch expressions, and text blocks. Together they let you write code that says what you mean rather than how to compute it.
@@ -185,6 +193,8 @@ List<Integer> lengths = names.stream()
     .collect(Collectors.toList());
 names.forEach(System.out::println);
 ```
+
+[![Lambda costume change from anonymous inner class boilerplate to concise functional interfaces]({{ '/assets/images/2026-05-04-catching-up-on-java/05-costume-change.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/05-costume-change.png' | relative_url }})
 
 The common shapes are: `Type::staticMethod`, `instance::method`, `Type::instanceMethod` (the receiver becomes the first lambda argument), and `Type::new` (constructor reference). There are a few less-common forms too, including `super::method`, `TypeName.super::method`, and array constructor references like `int[]::new`.
 
@@ -297,6 +307,8 @@ Java still has no string interpolation. A preview feature ([JEP 430](https://ope
 
 > **When to reach for it.** Use text blocks for any embedded literal that has natural line structure: SQL, JSON, HTML, regex with `Pattern.COMMENTS`, multi-line error messages. The auto-stripping rule means the indentation of the closing `"""` matters, so eyeball it when copying snippets between files. The main tradeoff is that text blocks are still plain `String`, not a templating type, so for anything with many substitutions a real template engine still beats `formatted`.
 
+[![Records, sealed types, and pattern matching presented together as a closed family with exhaustive switch]({{ '/assets/images/2026-05-04-catching-up-on-java/06-fashion-show.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/06-fashion-show.png' | relative_url }})
+
 ## Data and Pattern Matching
 
 This is the cluster of features that most changes how new Java code is shaped. If you read one section, read this one. Records, pattern matching, and sealed types are individually useful, but they were designed to be used together: a closed family of record types, switched over with a single exhaustive expression. That combination is the closest Java has come to algebraic data types, and it changes how a lot of domain modeling looks.
@@ -314,6 +326,8 @@ public record Point(int x, int y) {}
 ```
 
 That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. The record's own fields can't be reassigned, but immutability is shallow: a component can still refer to a mutable object unless you make a defensive copy. There is no subclassing and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
+
+[![Record value class generating a constructor, accessors, equals, hashCode, and toString]({{ '/assets/images/2026-05-04-catching-up-on-java/07-value-class.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/07-value-class.png' | relative_url }})
 
 You can add behavior:
 
@@ -443,6 +457,8 @@ String describe(Line line) {
 `null` is handled explicitly with `case null` (otherwise a `null` selector throws `NullPointerException`, same as classic switch).
 
 > **When to reach for it.** Use this combination for any dispatch over a closed family of types: AST traversals, message handlers, result-type unwrapping, formatter logic. The most important property is the exhaustiveness check: when you add a new variant to the sealed parent, the compiler immediately tells you every switch that needs updating. The main tradeoff is one most languages share: very wide type families can produce sprawling switch blocks. If a single switch handles ten variants and each branch is non-trivial, consider extracting per-variant methods and dispatching to them, or splitting the variants into sub-hierarchies.
+
+[![Airport generic type check showing type inference, wildcards, PECS, and runtime erasure]({{ '/assets/images/2026-05-04-catching-up-on-java/08-generics.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/08-generics.png' | relative_url }})
 
 ## Generics: A Flashback, Then What's New
 
@@ -637,6 +653,8 @@ Three libraries arrived together in Java 8 and reshaped how everyday code looks:
 
 ### Streams
 
+[![Stream pipeline transforming user values through filter, map, sorted, and collect stages]({{ '/assets/images/2026-05-04-catching-up-on-java/09-stream-pipeline.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/09-stream-pipeline.png' | relative_url }})
+
 [JEP 107](https://openjdk.org/jeps/107) introduced [`java.util.stream`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html). A stream is a pipeline of operations over a sequence of values. The classic before/after:
 
 ```java
@@ -685,6 +703,8 @@ And `parallelStream()` (or `stream().parallel()`) splits the source for parallel
 
 > **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations - filter, map, group, reduce - and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version - the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
 
+[![Optional boxes showing a present Optional user and an empty Optional user]({{ '/assets/images/2026-05-04-catching-up-on-java/10-optional.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/10-optional.png' | relative_url }})
+
 ### Optional
 
 [`Optional<T>`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Optional.html) is a container that holds either a value or nothing. The aim is to make absence explicit in a method's return type:
@@ -705,6 +725,8 @@ The useful methods: `map`, `flatMap`, `filter` for transformation; `orElse`, `or
 A few well-known gotchas. `Optional.of(null)` throws (use `ofNullable`). `Optional` is a value-based class and does not implement `Serializable`, so don't put it in fields you persist. And the constructor for `Optional` is private; the factories (`of`, `ofNullable`, `empty`) are the only way in.
 
 > **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections - return an empty list, not `Optional<List<T>>`. The whole feature is contested; plenty of teams use it heavily and plenty consider it overused. The pragmatic rule that holds up: return-type only, and only when absence is a genuine, expected outcome.
+
+[![java.time dashboard contrasting legacy Date and Calendar with Instant, LocalDateTime, ZonedDateTime, Duration, and Period]({{ '/assets/images/2026-05-04-catching-up-on-java/11-time-zone.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/11-time-zone.png' | relative_url }})
 
 ### java.time
 
@@ -754,6 +776,8 @@ A handful of smaller standard-library additions from Java 9 onward that delete u
 - **Built-in HttpClient (Java 11).** `java.net.http.HttpClient` with HTTP/2 support out of the box. You can drop Apache HttpClient for many use cases.
 - **Sequenced collections (Java 21).** `getFirst`, `getLast`, `reversed`. A unified API across ordered collections.
 
+[![Virtual thread cafe with many lightweight requests served beside larger operating system threads]({{ '/assets/images/2026-05-04-catching-up-on-java/12-concurrency.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/12-concurrency.png' | relative_url }})
+
 ## Concurrency, in Brief
 
 Concurrency deserves its own post, but two changes are worth naming here so you know they exist.
@@ -765,6 +789,8 @@ The bigger change is virtual threads (Java 21). They're cheap threads scheduled 
 ## Tooling and Packaging, in Brief
 
 A few tooling changes you'll bump into. `jshell` (Java 9) is a real REPL. `java Hello.java` (Java 11) runs a single-file source program directly, with no separate `javac` step. Helpful NullPointerExceptions arrived in Java 14 and tell you which variable was null; in Java 14 they were behind `-XX:+ShowCodeDetailsInExceptionMessages`, and later releases made them the normal experience. The JDK is now modular under the JPMS module system (Java 9), which most application code still ignores; it's mostly why you sometimes see `--add-opens` flags. GraalVM Native Image is worth a name-check for startup-sensitive workloads, though it lives outside the JDK proper.
+
+[![Java museum of almosts with exhibits for Optional, JPMS modules, checked exceptions, and Project Valhalla]({{ '/assets/images/2026-05-04-catching-up-on-java/13-java-museum.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/13-java-museum.png' | relative_url }})
 
 ## What Didn't Pan Out as Expected
 
