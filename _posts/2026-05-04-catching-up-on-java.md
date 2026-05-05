@@ -80,7 +80,7 @@ try {
 }
 ```
 
-The exception variable's static type is the common supertype of the listed exceptions.
+The exception variable's static type is the least upper bound of the listed exception types. In practice, that is the most specific type that can hold any of them.
 
 > **When to reach for it.** Whenever two or more catch blocks would have identical bodies. Don't force it if the handlers actually differ - a multi-catch with branching `instanceof` checks inside is worse than two separate catch blocks. Note that the exception variable is implicitly `final`, so you can't reassign it in the handler.
 
@@ -98,13 +98,13 @@ int level = switch (role) {
 };
 ```
 
-(That uses the Java 14 switch-expression form covered in the next section. Pre-14 you'd write `case "admin": ... break;`.) The compiler hashes the strings under the hood; matching is case-sensitive and a `null` selector throws `NullPointerException`.
+(That uses the Java 14 switch-expression form covered in the next section. Pre-14 you'd write `case "admin": ... break;`.) Matching is case-sensitive and a `null` selector throws `NullPointerException`. `javac` commonly lowers a string switch to `hashCode` plus `equals` checks, but that's an implementation detail, not something to depend on.
 
-> **When to reach for it.** Good for dispatching on a small fixed set of well-known string tokens (HTTP methods, role names, command verbs). For anything user-supplied or open-ended, a `Map<String, Handler>` lookup is more flexible and easier to extend. And if the string set is really an enumeration in disguise, define an actual `enum` and switch on that - you get exhaustiveness checking for free.
+> **When to reach for it.** Good for dispatching on a small fixed set of well-known string tokens (HTTP methods, role names, command verbs). For anything user-supplied or open-ended, a `Map<String, Handler>` lookup is more flexible and easier to extend. And if the string set is really an enumeration in disguise, define an actual `enum` and switch on that - switch expressions over enums get exhaustiveness checking from the compiler.
 
 ### Underscores in numeric literals (Java 7)
 
-Purely cosmetic, purely useful. Per [JLS 3.10.1](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.1), underscores can go anywhere between digits and the compiler ignores them:
+Purely cosmetic, purely useful. Per the JLS rules for [integer](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.1) and [floating-point](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.2) literals, underscores can go between digits and the compiler ignores them:
 
 ```java
 long bytesPerGib = 1_073_741_824L;
@@ -138,10 +138,11 @@ Where the right-hand side hides the type, it costs the reader more than it saves
 var result = service.lookup(id);                // bad: what is result?
 ```
 
-There's also one subtle trap that bites people coming back to the language. `var` plus the diamond operator together infers `Object`:
+There's also one subtle trap that bites people coming back to the language. With an empty generic constructor and no target type, `var` plus the diamond operator falls back to `Object`:
 
 ```java
-var list = new ArrayList<>();   // ArrayList<Object>, almost certainly not what you wanted
+var list = new ArrayList<>();                    // ArrayList<Object>, almost certainly not what you wanted
+var copied = new ArrayList<>(List.of("ada"));    // ArrayList<String>, inferred from the constructor argument
 ```
 
 Either give the diamond a target type, or write the parameter explicitly: `var list = new ArrayList<String>();`.
@@ -173,7 +174,7 @@ List<String> names = new ArrayList<>(Arrays.asList("ada", "alan", "grace"));
 names.sort((a, b) -> a.length() - b.length());
 ```
 
-A lambda is convertible to any [functional interface](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/FunctionalInterface.html), meaning any interface with a single abstract method. The standard ones live in [`java.util.function`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/package-summary.html): `Function<T, R>`, `Predicate<T>`, `Consumer<T>`, `Supplier<T>`, and so on. Older single-method interfaces like `Comparator` and `Runnable` work too, retroactively.
+A lambda is convertible to any [functional interface](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/FunctionalInterface.html), meaning an interface with a single abstract method after default methods and public `Object` methods are ignored. The standard ones live in [`java.util.function`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/package-summary.html): `Function<T, R>`, `Predicate<T>`, `Consumer<T>`, `Supplier<T>`, and so on. Older single-method interfaces like `Comparator` and `Runnable` work too, retroactively.
 
 When the lambda body is just a call to an existing method, you can use a [method reference](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.13) instead:
 
@@ -185,7 +186,7 @@ List<Integer> lengths = names.stream()
 names.forEach(System.out::println);
 ```
 
-The four shapes are: `Type::staticMethod`, `instance::method`, `Type::instanceMethod` (the receiver becomes the first lambda argument), and `Type::new` (constructor reference).
+The common shapes are: `Type::staticMethod`, `instance::method`, `Type::instanceMethod` (the receiver becomes the first lambda argument), and `Type::new` (constructor reference). There are a few less-common forms too, including `super::method`, `TypeName.super::method`, and array constructor references like `int[]::new`.
 
 > **When to reach for it.** Use lambdas anywhere you'd previously have written an anonymous inner class for a single-method interface. Prefer a method reference when it reads better than the equivalent lambda (`String::length` over `s -> s.length()`); fall back to a lambda when the body is non-trivial or the parameter names add meaning. Two tradeoffs worth knowing: lambdas can't throw checked exceptions unless the target interface declares them, which is awkward when streaming over IO; and stack traces from inside lambdas point at synthetic method names like `lambda$0`, which can hurt debugging in deeply nested pipelines.
 
@@ -223,7 +224,7 @@ public enum HttpMethod {
 
 Each constant can even override methods individually, which is a niche but useful feature for state-machine-style enums.
 
-The reason this flashback matters here: switch and enums were designed to work together. Inside a `switch` over an enum, you write the constant names without the type prefix (`case ACTIVE`, not `case Status.ACTIVE`), and the compiler can reason about which constants are covered. That second property is what makes the next subsection's expression-form switch useful in practice - the compiler will tell you when a new enum constant breaks a switch somewhere, instead of letting it fall through to a `default` branch with no warning.
+The reason this flashback matters here: switch and enums were designed to work together. Inside a `switch` over an enum, you write the constant names without the type prefix (`case ACTIVE`, not `case Status.ACTIVE`), and the compiler can reason about which constants are covered. That second property is what makes the next subsection's expression-form switch useful in practice - a switch expression without `default` will fail to compile when a new enum constant makes it incomplete.
 
 #### The expression form
 
@@ -280,7 +281,7 @@ String sql = """
         """;
 ```
 
-The leading whitespace common to every line is stripped automatically, based on the indentation of the closing `"""`. Embedded double quotes don't need escaping. Trailing newlines work the way you'd expect: a line break before the closing `"""` produces a final `\n`; placing `"""` directly after the last character does not.
+The leading whitespace common to the text block's determining lines is stripped automatically; the closing `"""` participates in that calculation when it sits on its own line, so its indentation still matters. Embedded double quotes usually don't need escaping, but a literal `"""` sequence has to escape at least one quote. Trailing newlines work the way you'd expect: a line break before the closing `"""` produces a final `\n`; placing `"""` directly after the last character does not.
 
 Two interpolation-adjacent features round it out. `String.formatted` lets you template a text block without `String.format(...)` on every call site:
 
@@ -312,7 +313,7 @@ The pre-record landscape was full of partial fixes. Many teams used Lombok's `@V
 public record Point(int x, int y) {}
 ```
 
-That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. The record's own fields can't be reassigned, but immutability is shallow: a component can still refer to a mutable object unless you make a defensive copy. There is no inheritance and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
+That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. The record's own fields can't be reassigned, but immutability is shallow: a component can still refer to a mutable object unless you make a defensive copy. There is no subclassing and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
 
 You can add behavior:
 
@@ -328,7 +329,7 @@ public record Point(int x, int y) {
 
 Methods are fine; what records discourage is hidden state. You can declare static fields and static methods, but you can't add instance fields beyond the components - if a value isn't a declared component, it can't be part of the record's identity, and the language refuses to let you add it.
 
-You can also validate components in a [compact constructor](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4), which runs before the canonical constructor assigns the fields:
+You can also validate components in a [compact constructor](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4), which is the canonical constructor written in a shorter form:
 
 ```java
 public record Range(int low, int high) {
@@ -340,7 +341,7 @@ public record Range(int low, int high) {
 }
 ```
 
-The compact constructor doesn't list parameters or perform assignment; it just lets you validate or normalize the incoming values, after which the language assigns them to the fields in order. You can also declare the canonical constructor explicitly if you need to, and you can add additional constructors that delegate to the canonical one with `this(...)`.
+The compact constructor doesn't list parameters or perform field assignment; it lets you validate or normalize the incoming values. After the constructor body runs, the compiler assigns the component fields from the current parameter values in order. You can also declare the canonical constructor explicitly if you need to, and you can add additional constructors that delegate to the canonical one with `this(...)`.
 
 A few constraints to know. Records can't extend another class (they implicitly extend [`java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html)) but they can implement interfaces. Records aren't a substitute for entities with mutable lifecycle - they're for data, not state. And because the components are part of the public API by name (the accessors take their names from the components), renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
@@ -390,9 +391,9 @@ public record Square(double side) implements Shape {}
 public record Triangle(double base, double height) implements Shape {}
 ```
 
-Every direct subtype must be listed in `permits`, must live in the same module (or same package, for unnamed modules), and must declare itself as `final`, `sealed`, or `non-sealed`. Records cover the `final` case for free.
+Every direct subtype must be listed in `permits`, unless the permitted subtypes are declared in the same source file and the compiler can infer the list. Each subtype must live in the same module (or same package, for unnamed modules), and must declare itself as `final`, `sealed`, or `non-sealed`. Records cover the `final` case for free.
 
-On its own, `sealed` is a modest documentation feature. Paired with the next subsection, it's the feature that lets the compiler check exhaustiveness over a closed family of types.
+On its own, `sealed` enforces an extension boundary in the type system. Paired with the next subsection, it's the feature that lets the compiler check exhaustiveness over a closed family of types.
 
 > **When to reach for it.** Use sealed types for closed domain hierarchies you control: result types (`Success | Failure`), AST or IR node types, finite state machines, command/event types in messaging code. Don't reach for `sealed` on hierarchies you expect third parties to extend - it's the wrong tool for an open extension point. The tradeoff against `enum` is that sealed-plus-records can carry per-case data, where enum constants share a single shape.
 
@@ -457,15 +458,15 @@ names.add("ada");
 String first = (String) names.get(0);   // cast, with the runtime check that goes with it
 ```
 
-Generics moved that cast to compile time:
+Generics moved the type check to compile time:
 
 ```java
 List<String> names = new ArrayList<String>();
 names.add("ada");
-String first = names.get(0);            // no cast, no runtime check
+String first = names.get(0);            // no cast in source; bad writes are caught earlier
 ```
 
-Same bytecode at runtime; different ergonomics at the source level.
+Generics are still erased in the running JVM, so the compiler may insert casts in the generated bytecode. The useful shift is that type mistakes move to compile time and disappear from the source you read.
 
 **Erasure.** Generics are checked at compile time and erased at runtime. `List<String>` and `List<Integer>` are both just `List` in the running JVM. The consequences are well-known and still apply:
 
@@ -494,13 +495,13 @@ public static <T extends Comparable<T>> T max(List<T> xs) {
 
 The bound is `extends`, and it's used for both classes and interfaces; there's no separate keyword.
 
-**Wildcards and PECS.** A `List<? extends Number>` is a list whose element type is some unknown subtype of `Number`. You can read `Number` out, but you can't add to it (the compiler doesn't know what specific subtype to accept):
+**Wildcards and PECS.** A `List<? extends Number>` is a list whose element type is some unknown subtype of `Number`. You can read `Number` out, but you can't add non-null values of a useful element type (the compiler doesn't know what specific subtype to accept):
 
 ```java
 public static double sum(List<? extends Number> xs) {
     double total = 0;
     for (Number n : xs) total += n.doubleValue();
-    // xs.add(1) would be a compile error; we don't know if xs is List<Integer> or List<Double>
+    // xs.add(1) would be a compile error; only null is allowed
     return total;
 }
 ```
@@ -518,7 +519,7 @@ The mnemonic: **P**roducer **E**xtends, **C**onsumer **S**uper. If a parameter i
 **Raw types.** `List` (no parameter) still compiles for backward compatibility with pre-Java-5 code:
 
 ```java
-List names = new ArrayList();   // compiles, with an unchecked warning
+List names = new ArrayList();   // compiles, with rawtypes warnings under -Xlint
 ```
 
 In modern code, treat any raw type as a bug. The warnings are telling you the type system has a hole.
@@ -566,11 +567,12 @@ That call infers the stream element type and the collector's key and result type
 **The `var` gotcha.** Already mentioned in the syntax section, worth restating in a generics frame:
 
 ```java
-var list = new ArrayList<String>();   // ArrayList<String>, fine
-var list = new ArrayList<>();         // ArrayList<Object>, almost certainly not what you wanted
+var explicit = new ArrayList<String>();           // ArrayList<String>, fine
+var empty = new ArrayList<>();                    // ArrayList<Object>, almost certainly not what you wanted
+var copied = new ArrayList<>(List.of("ada"));     // ArrayList<String>, inferred from the constructor argument
 ```
 
-The diamond needs a target type to drive inference, and `var` provides none.
+An empty diamond needs either a target type or useful constructor arguments to drive inference, and bare `new ArrayList<>()` provides neither.
 
 **Generic method references.** Method references compose with generic inference in ways that didn't exist when lambdas didn't exist:
 
@@ -591,11 +593,11 @@ public record Result<T>(T value, List<String> warnings) {}
 Pair<String, Integer> p = new Pair<>("ada", 42);
 ```
 
-**Pattern matching and generics.** The generic type in an `instanceof` pattern must be reifiable from context. In practice that means: if the static type of the tested expression already constrains the parameterization, you can use it; otherwise you have to use `?` and cast.
+**Pattern matching and generics.** A parameterized type in an `instanceof` pattern has to be something the compiler can validate from the expression's static type. The runtime still doesn't know generic element types. In practice that means: if the tested expression is just `Object`, `List<String>` is not checkable; if the static type already constrains the parameterization, a parameterized pattern can be valid.
 
 ```java
 Object obj = ...;
-// Compile error: List<String> isn't reifiable from Object alone.
+// Compile error: List<String> is not safely checkable from Object alone.
 // if (obj instanceof List<String> list) { ... }
 
 // Workaround: test the raw shape, then accept the unchecked element-type cast.
@@ -607,7 +609,7 @@ if (obj instanceof List<?> list) {
 // Where the static type already pins the parameterization, the pattern works.
 List<? extends Number> nums = ...;
 if (nums instanceof ArrayList<? extends Number> al) {
-    // al is ArrayList<? extends Number>; the parameter info is preserved.
+    // al is ArrayList<? extends Number>; no element-type test happened at runtime.
 }
 ```
 
@@ -621,7 +623,8 @@ This is an honest limitation. Don't expect Scala-level pattern power over generi
 <R, A> R collect(Collector<? super T, A, R> collector);                     // Stream.collect
 <U> CompletableFuture<U> thenApply(Function<? super T, ? extends U> fn);    // CompletableFuture
 <U> Optional<U> map(Function<? super T, ? extends U> mapper);               // Optional
-<T> HttpResponse<T> send(HttpRequest req, BodyHandler<T> handler);          // HttpClient
+<T> HttpResponse<T> send(HttpRequest req, HttpResponse.BodyHandler<T> h)     // HttpClient
+    throws IOException, InterruptedException;
 ```
 
 PECS appears everywhere. Multiple type parameters on a single method are routine. Once these signatures stop looking dense, you can read a method's contract directly off its declaration without running it through a translator in your head.
@@ -656,7 +659,7 @@ List<String> activeNames = users.stream()
     .collect(Collectors.toList());
 ```
 
-The intermediate operations (`filter`, `map`, `sorted`, `distinct`, `limit`, `peek`) are lazy and return a new stream. The terminal operation (`collect`, `forEach`, `reduce`, `count`, `findFirst`, `toList`) drives the pipeline and produces a result. A stream is consumed once; trying to use it again throws `IllegalStateException`. The example uses Java 8's `collect(Collectors.toList())`; Java 16 added the shorter `Stream.toList()`.
+The intermediate operations (`filter`, `map`, `sorted`, `distinct`, `limit`, `peek`) are lazy and return a new stream. The terminal operation (`collect`, `forEach`, `reduce`, `count`, `findFirst`, `toList`) drives the pipeline and produces a result. A stream is meant to be consumed once; implementations may throw `IllegalStateException` when they detect reuse, though not every reuse can be detected. The example uses Java 8's `collect(Collectors.toList())`; Java 16 added the shorter `Stream.toList()`, but it returns an unmodifiable list. `Collectors.toList()` makes no guarantee about mutability or implementation type.
 
 Grouping and partitioning go through [`Collectors`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collectors.html):
 
@@ -678,7 +681,7 @@ int totalAge = users.stream().mapToInt(User::age).sum();
 OptionalDouble avgAge = users.stream().mapToInt(User::age).average();
 ```
 
-And `parallelStream()` (or `stream().parallel()`) splits the source across the common ForkJoinPool. Tempting and often a trap.
+And `parallelStream()` (or `stream().parallel()`) splits the source for parallel execution, usually on the common ForkJoinPool in the JDK implementation. Tempting and often a trap.
 
 > **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations - filter, map, group, reduce - and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version - the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
 
@@ -745,7 +748,7 @@ LocalDate parsed = LocalDate.parse("2026-05-04", iso);
 
 A handful of smaller standard-library additions from Java 9 onward that delete utility classes you used to write or pull in from Guava and Apache Commons.
 
-- **Collection factory methods (Java 9).** `List.of(1, 2, 3)`, `Map.of("a", 1, "b", 2)`. Immutable literals.
+- **Collection factory methods (Java 9).** `List.of(1, 2, 3)`, `Map.of("a", 1, "b", 2)`. Unmodifiable collection factories, especially handy for literals, that reject `null`; mutable elements can still mutate. Use `Map.ofEntries(...)` for larger maps.
 - **Stream additions (Java 9, 16).** `takeWhile`, `dropWhile`, and `Stream.toList()`.
 - **String methods and Files helpers (Java 11).** `strip`, `isBlank`, `lines`, `repeat`, plus `Files.readString` and `Files.writeString`.
 - **Built-in HttpClient (Java 11).** `java.net.http.HttpClient` with HTTP/2 support out of the box. You can drop Apache HttpClient for many use cases.
@@ -757,11 +760,11 @@ Concurrency deserves its own post, but two changes are worth naming here so you 
 
 `CompletableFuture` (Java 8) is the composable async story. It replaced most uses of the older `Future` for callback-style chaining and combination of asynchronous computations.
 
-The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can spawn millions of them. For request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and you get the throughput characteristics that previously required callback-heavy or reactive-style rewrites. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
+The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can create very large numbers of them. For high-concurrency, blocking I/O-bound request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and many blocked requests can coexist without tying up an OS thread per request. They do not make CPU-bound work faster by themselves. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
 
 ## Tooling and Packaging, in Brief
 
-A few tooling changes you'll bump into. `jshell` (Java 9) is a real REPL. `java Hello.java` (Java 11) runs a single-file source program directly, no compile step. Helpful NullPointerExceptions (Java 14) tell you which variable was null. The JDK is now modular under the JPMS module system (Java 9), which most application code still ignores; it's mostly why you sometimes see `--add-opens` flags. GraalVM Native Image is worth a name-check for startup-sensitive workloads, though it lives outside the JDK proper.
+A few tooling changes you'll bump into. `jshell` (Java 9) is a real REPL. `java Hello.java` (Java 11) runs a single-file source program directly, with no separate `javac` step. Helpful NullPointerExceptions arrived in Java 14 and tell you which variable was null; in Java 14 they were behind `-XX:+ShowCodeDetailsInExceptionMessages`, and later releases made them the normal experience. The JDK is now modular under the JPMS module system (Java 9), which most application code still ignores; it's mostly why you sometimes see `--add-opens` flags. GraalVM Native Image is worth a name-check for startup-sensitive workloads, though it lives outside the JDK proper.
 
 ## What Didn't Pan Out as Expected
 
