@@ -15,8 +15,6 @@ Welcome to the 2026 edition of Catching up on Java! If you last wrote Java aroun
 
 This post is a tour of the language and standard library changes worth knowing about, specifically for someone who knew Java well in the early 2000s and hasn't kept close tabs since. I'm not going to list every change. That would be far too much work and impossible in a single blog article. Instead, I'll just focus on the changes that stood out to me.
 
-[![Boilerplate cleanup salon replacing old Java verbosity with smaller syntax]({{ '/assets/images/2026-05-04-catching-up-on-java/02-boilerplate-cleanup-salon.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/02-boilerplate-cleanup-salon.png' | relative_url }})
-
 ## The Small Syntactic Wins
 
 There were a handful of quality-of-life changes that arrived in Java 7 through 10. Small individually, but together they remove a lot of the boilerplate the older language was known for. Nothing here is conceptually new.
@@ -48,8 +46,6 @@ try (BufferedReader reader = new BufferedReader(new FileReader("data.txt"))) {
     return reader.readLine();
 }
 ```
-
-[![Resource butler closing files, sockets, and database connections after a try-with-resources block]({{ '/assets/images/2026-05-04-catching-up-on-java/03-resource-butler.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/03-resource-butler.png' | relative_url }})
 
 The resource is declared in the `try` header, and the compiler generates the close-with-suppressed-exception machinery for you. Anything implementing [`AutoCloseable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/AutoCloseable.html) works. You can declare more than one resource, separated by semicolons; they close in reverse order.
 
@@ -194,8 +190,6 @@ List<Integer> lengths = names.stream()
 names.forEach(System.out::println);
 ```
 
-[![Lambda costume change from anonymous inner class boilerplate to concise functional interfaces]({{ '/assets/images/2026-05-04-catching-up-on-java/05-costume-change.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/05-costume-change.png' | relative_url }})
-
 The common shapes are: `Type::staticMethod`, `instance::method`, `Type::instanceMethod` (the receiver becomes the first lambda argument), and `Type::new` (constructor reference). There are a few less-common forms too, including `super::method`, `TypeName.super::method`, and array constructor references like `int[]::new`.
 
 > **When to reach for it.** Use lambdas anywhere you'd previously have written an anonymous inner class for a single-method interface. Prefer a method reference when it reads better than the equivalent lambda (`String::length` over `s -> s.length()`); fall back to a lambda when the body is non-trivial or the parameter names add meaning. Two tradeoffs worth knowing: lambdas can't throw checked exceptions unless the target interface declares them, which is awkward when streaming over IO; and stack traces from inside lambdas point at synthetic method names like `lambda$0`, which can hurt debugging in deeply nested pipelines.
@@ -307,8 +301,6 @@ Java still has no string interpolation. A preview feature ([JEP 430](https://ope
 
 > **When to reach for it.** Use text blocks for any embedded literal that has natural line structure: SQL, JSON, HTML, regex with `Pattern.COMMENTS`, multi-line error messages. The auto-stripping rule means the indentation of the closing `"""` matters, so eyeball it when copying snippets between files. The main tradeoff is that text blocks are still plain `String`, not a templating type, so for anything with many substitutions a real template engine still beats `formatted`.
 
-[![Records, sealed types, and pattern matching presented together as a closed family with exhaustive switch]({{ '/assets/images/2026-05-04-catching-up-on-java/06-fashion-show.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/06-fashion-show.png' | relative_url }})
-
 ## Data and Pattern Matching
 
 This is the cluster of features that most changes how new Java code is shaped. If you read one section, read this one. Records, pattern matching, and sealed types are individually useful, but they were designed to be used together: a closed family of record types, switched over with a single exhaustive expression. That combination is the closest Java has come to algebraic data types, and it changes how a lot of domain modeling looks.
@@ -326,8 +318,6 @@ public record Point(int x, int y) {}
 ```
 
 That declaration generates the canonical constructor (`new Point(1, 2)`), accessors (`p.x()`, `p.y()`, note no `get` prefix), structural `equals` and `hashCode` based on the components, and a `toString` of the form `Point[x=1, y=2]`. The class is implicitly `final` and the components are implicitly `private final`. The record's own fields can't be reassigned, but immutability is shallow: a component can still refer to a mutable object unless you make a defensive copy. There is no subclassing and no place for a subclass to reinterpret what equality means. That intentional rigidity is the point: a record is supposed to be a transparent carrier of its components and nothing more.
-
-[![Record value class generating a constructor, accessors, equals, hashCode, and toString]({{ '/assets/images/2026-05-04-catching-up-on-java/07-value-class.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/07-value-class.png' | relative_url }})
 
 You can add behavior:
 
@@ -653,8 +643,6 @@ Three libraries arrived together in Java 8 and reshaped how everyday code looks:
 
 ### Streams
 
-[![Stream pipeline transforming user values through filter, map, sorted, and collect stages]({{ '/assets/images/2026-05-04-catching-up-on-java/09-stream-pipeline.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/09-stream-pipeline.png' | relative_url }})
-
 [JEP 107](https://openjdk.org/jeps/107) introduced [`java.util.stream`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html). A stream is a pipeline of operations over a sequence of values. The classic before/after:
 
 ```java
@@ -702,8 +690,6 @@ OptionalDouble avgAge = users.stream().mapToInt(User::age).average();
 And `parallelStream()` (or `stream().parallel()`) splits the source for parallel execution, usually on the common ForkJoinPool in the JDK implementation. Tempting and often a trap.
 
 > **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations - filter, map, group, reduce - and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version - the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
-
-[![Optional boxes showing a present Optional user and an empty Optional user]({{ '/assets/images/2026-05-04-catching-up-on-java/10-optional.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/10-optional.png' | relative_url }})
 
 ### Optional
 
@@ -775,8 +761,6 @@ A handful of smaller standard-library additions from Java 9 onward that delete u
 - **String methods and Files helpers (Java 11).** `strip`, `isBlank`, `lines`, `repeat`, plus `Files.readString` and `Files.writeString`.
 - **Built-in HttpClient (Java 11).** `java.net.http.HttpClient` with HTTP/2 support out of the box. You can drop Apache HttpClient for many use cases.
 - **Sequenced collections (Java 21).** `getFirst`, `getLast`, `reversed`. A unified API across ordered collections.
-
-[![Virtual thread cafe with many lightweight requests served beside larger operating system threads]({{ '/assets/images/2026-05-04-catching-up-on-java/12-concurrency.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/12-concurrency.png' | relative_url }})
 
 ## Concurrency, in Brief
 
