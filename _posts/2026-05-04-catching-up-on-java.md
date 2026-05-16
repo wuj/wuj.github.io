@@ -9,11 +9,15 @@ tags: [java, language-features, generics, records, pattern-matching, streams, la
 published: true
 ---
 
-[![Time traveler stepping from Java 2010 into a modern Java 2026 city]({{ '/assets/images/2026-05-04-catching-up-on-java/01-java-time-traveller.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/01-java-time-traveller.png' | relative_url }})
+[![A stylish East Asian female developer steps out of a glowing portal labeled 2010 into a vibrant modern Java city filled with signs for lambdas, records, streams, pattern matching, Optional, java.time, and virtual threads.]({{ '/assets/images/2026-05-04-catching-up-on-java/01-java-time-traveller.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/01-java-time-traveller.png' | relative_url }})
 
 Welcome to the 2026 edition of Catching up on Java! If you last wrote Java around 2010, you've probably noticed that it has changed quite a bit since then. The changes are mostly additive rather than breaking, but there are enough of them that a modern codebase will look unfamiliar at first glance. Lambdas, records, pattern matching, virtual threads. The class system, the type system, and the JVM are still recognizable; the syntax people reach for and the libraries they call have changed.
 
 This post is a tour of the language and standard library changes worth knowing about, specifically for someone who knew Java well in the early 2000s and hasn't kept close tabs since. I'm not going to list every change. That would be far too much work and impossible in a single blog article. Instead, I'll just focus on the changes that stood out to me.
+
+[![Tiny helper robots clean up stacks of old Java boilerplate while the main developer looks on approvingly.]({{ '/assets/images/2026-05-04-catching-up-on-java/02-boilerplate-cleanup-crew.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/02-boilerplate-cleanup-crew.png' | relative_url }})
+
+*The boilerplate crew sweeps away repeated ceremony so the useful Java code is easier to spot.*
 
 ## The Small Syntactic Wins
 
@@ -49,7 +53,7 @@ try (BufferedReader reader = new BufferedReader(new FileReader("data.txt"))) {
 
 The resource is declared in the `try` header, and the compiler generates the close-with-suppressed-exception machinery for you. Anything implementing [`AutoCloseable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/AutoCloseable.html) works. You can declare more than one resource, separated by semicolons; they close in reverse order.
 
-> **When to reach for it.** Always, for anything that needs closing. The only reason not to use it is if you genuinely need to keep the resource open past the end of the block, in which case you weren't going to write the close-in-finally pattern anyway. One subtle point: if the body throws and `close` also throws, the body's exception is the primary and `close`'s is attached via [`Throwable.getSuppressed()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html#getSuppressed()) - the opposite of what the old hand-written idiom usually did, and almost always the more useful behavior.
+> **When to reach for it.** Always, for anything that needs closing. The only reason not to use it is if you genuinely need to keep the resource open past the end of the block, in which case you weren't going to write the close-in-finally pattern anyway. One subtle point: if the body throws and `close` also throws, the body's exception is the primary and `close`'s is attached via [`Throwable.getSuppressed()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html#getSuppressed()), which is the opposite of what the old hand-written idiom usually did, and almost always the more useful behavior.
 
 ### Diamond operator (Java 7)
 
@@ -84,7 +88,7 @@ try {
 
 The exception variable's static type is the least upper bound of the listed exception types. In practice, that is the most specific type that can hold any of them.
 
-> **When to reach for it.** Whenever two or more catch blocks would have identical bodies. Don't force it if the handlers actually differ - a multi-catch with branching `instanceof` checks inside is worse than two separate catch blocks. Note that the exception variable is implicitly `final`, so you can't reassign it in the handler.
+> **When to reach for it.** Whenever two or more catch blocks would have identical bodies. Don't force it if the handlers differ; a multi-catch with branching `instanceof` checks inside is worse than two separate catch blocks. Note that the exception variable is implicitly `final`, so you can't reassign it in the handler.
 
 ### Strings in switch (Java 7)
 
@@ -102,7 +106,7 @@ int level = switch (role) {
 
 (That uses the Java 14 switch-expression form covered in the next section. Pre-14 you'd write `case "admin": ... break;`.) Matching is case-sensitive and a `null` selector throws `NullPointerException`. `javac` commonly lowers a string switch to `hashCode` plus `equals` checks, but that's an implementation detail, not something to depend on.
 
-> **When to reach for it.** Good for dispatching on a small fixed set of well-known string tokens (HTTP methods, role names, command verbs). For anything user-supplied or open-ended, a `Map<String, Handler>` lookup is more flexible and easier to extend. And if the string set is really an enumeration in disguise, define an actual `enum` and switch on that - switch expressions over enums get exhaustiveness checking from the compiler.
+> **When to reach for it.** Good for dispatching on a small fixed set of well-known string tokens (HTTP methods, role names, command verbs). For anything user-supplied or open-ended, a `Map<String, Handler>` lookup is more flexible and easier to extend. And if the string set is an enumeration in disguise, define an actual `enum` and switch on that. Switch expressions over enums get exhaustiveness checking from the compiler.
 
 ### Underscores in numeric literals (Java 7)
 
@@ -114,7 +118,7 @@ int creditCardMask = 0b1111_0000_1111_0000;
 double pi = 3.141_592_653_589_793;
 ```
 
-> **When to reach for it.** Whenever a numeric literal is long enough that you have to count digits to read it. Group decimals in threes, hex and binary in fours or eights. No tradeoff worth mentioning - it's purely a readability win.
+> **When to reach for it.** Whenever a numeric literal is long enough that you have to count digits to read it. Group decimals in threes, hex and binary in fours or eights. No tradeoff worth mentioning; it's purely a readability win.
 
 ### var for local variables (Java 10)
 
@@ -151,7 +155,9 @@ Either give the diamond a target type, or write the parameter explicitly: `var l
 
 > **When to reach for it.** Use `var` when the right-hand side already names the type (a constructor call, a static factory like `List.of(...)`, a `new Foo()`). Avoid it when the type comes from a method whose name doesn't make the return type obvious; a reader shouldn't have to chase the declaration to know what `result` is. Avoid it for numeric literals where the inferred type matters (`var x = 1` is `int`, not `long`). And remember the boundary: Java 10 `var` is for local variables, not field declarations, method signatures, or return types. Java 11's lambda form (`(var x, var y) -> ...`) is the special case, and all lambda parameters have to use `var` or none of them can.
 
-[![Expression machine turning legacy statements into lambdas, switch expressions, and text blocks]({{ '/assets/images/2026-05-04-catching-up-on-java/04-expressions.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/04-expressions.png' | relative_url }})
+[![The developer upgrades a clunky old statement machine into a sleek expression-oriented machine labeled with lambdas, switch expressions, and text blocks.]({{ '/assets/images/2026-05-04-catching-up-on-java/03-expression-upgrade-machine.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/03-expression-upgrade-machine.png' | relative_url }})
+
+*The old statement contraption gets an upgrade: lambdas, switch expressions, and text blocks help more code produce values directly.*
 
 ## Expression-Oriented Code
 
@@ -198,7 +204,7 @@ The common shapes are: `Type::staticMethod`, `instance::method`, `Type::instance
 
 #### Flashback: enums
 
-Enums arrived in Java 5 (2004), the same release as generics. Pre-enum, "a fixed set of named constants" was usually expressed as `public static final int` declarations, which had every problem you'd expect. They had no namespace - `Color.RED` and `Status.RED` were both just `int 0`, freely substitutable, freely combinable in ways that didn't make sense. They printed as numbers in logs. There was no way to iterate over them. And nothing stopped you from passing `42` to a method expecting "a color."
+Enums arrived in Java 5 (2004), the same release as generics. Pre-enum, "a fixed set of named constants" was usually expressed as `public static final int` declarations, which had every problem you'd expect. They had no namespace: `Color.RED` and `Status.RED` were both just `int 0`, freely substitutable, freely combinable in ways that didn't make sense. They printed as numbers in logs. There was no way to iterate over them. And nothing stopped you from passing `42` to a method expecting "a color."
 
 `enum` replaced the int-constant pattern with a real type:
 
@@ -228,7 +234,7 @@ public enum HttpMethod {
 
 Each constant can even override methods individually, which is a niche but useful feature for state-machine-style enums.
 
-The reason this flashback matters here: switch and enums were designed to work together. Inside a `switch` over an enum, you write the constant names without the type prefix (`case ACTIVE`, not `case Status.ACTIVE`), and the compiler can reason about which constants are covered. That second property is what makes the next subsection's expression-form switch useful in practice - a switch expression without `default` will fail to compile when a new enum constant makes it incomplete.
+The reason this flashback matters here: switch and enums were designed to work together. Inside a `switch` over an enum, you write the constant names without the type prefix (`case ACTIVE`, not `case Status.ACTIVE`), and the compiler can reason about which constants are covered. That second property is what makes the next subsection's expression-form switch useful in practice. A switch expression without `default` will fail to compile when a new enum constant makes it incomplete.
 
 #### The expression form
 
@@ -243,7 +249,7 @@ String kind = switch (day) {
 };
 ```
 
-Three properties to notice. First, the arrow form (`->`) replaces `case:` plus `break`. There's no fall-through. Second, the switch returns a value, so you can assign it directly. Third, the compiler checks exhaustiveness: omit one of the enum constants and the code won't compile (unless you add a `default`). That last property is what makes it pleasant; the compiler will tell you when adding a new enum constant breaks an existing switch.
+Three properties to notice. First, the arrow form (`->`) replaces `case:` plus `break`. There's no fall-through. Second, the switch returns a value, so you can assign it directly. Third, the compiler checks exhaustiveness: omit one of the enum constants and the code won't compile (unless you add a `default`). That last property is what matters most in practice: the compiler will tell you when adding a new enum constant breaks an existing switch.
 
 If a branch needs more than one statement, use a block with `yield`:
 
@@ -261,9 +267,9 @@ int score = switch (grade) {
 };
 ```
 
-The old colon-and-break form still works, so existing code keeps compiling. Mixing the two forms in one switch is a compile error, which is the right call.
+The old colon-and-break form still works, so existing code keeps compiling. Mixing the two forms in one switch is a compile error, since fall-through behavior differs between them.
 
-> **When to reach for it.** Use the expression form whenever the switch is producing a value, especially over an enum or sealed type, where the compiler's exhaustiveness check will catch missing cases for you. Stick with the classic statement form for side-effecting branches with no return value. Avoid `default` on enum or sealed switches when you actually want exhaustiveness, since `default` defeats the compiler check. The main tradeoff: chained `yield` blocks read worse than equivalent `if/else if` chains once branches grow past a few lines, so don't force the expression form when the branches aren't really value-producing.
+> **When to reach for it.** Use the expression form whenever the switch is producing a value, especially over an enum or sealed type, where the compiler's exhaustiveness check will catch missing cases for you. Stick with the classic statement form for side-effecting branches with no return value. Avoid `default` on enum or sealed switches when you want exhaustiveness, since `default` defeats the compiler check. The main tradeoff: chained `yield` blocks read worse than equivalent `if/else if` chains once branches grow past a few lines, so don't force the expression form when the branches aren't value-producing.
 
 ### Text blocks (Java 15)
 
@@ -295,11 +301,15 @@ String greeting = """
         """.formatted(name, count);
 ```
 
-And inside a text block, a trailing `\` suppresses the line break, which is occasionally useful for very long single-line content split across source lines for readability.
+And inside a text block, a trailing `\` suppresses the line break, which is occasionally useful for long single-line content split across source lines for readability.
 
 Java still has no string interpolation. A preview feature ([JEP 430](https://openjdk.org/jeps/430), string templates) shipped briefly and was withdrawn for redesign, so for now `formatted` is the idiomatic choice.
 
 > **When to reach for it.** Use text blocks for any embedded literal that has natural line structure: SQL, JSON, HTML, regex with `Pattern.COMMENTS`, multi-line error messages. The auto-stripping rule means the indentation of the closing `"""` matters, so eyeball it when copying snippets between files. The main tradeoff is that text blocks are still plain `String`, not a templating type, so for anything with many substitutions a real template engine still beats `formatted`.
+
+[![The developer assembles puzzle pieces labeled records, sealed types, pattern matching, and switch into a modern Java domain model.]({{ '/assets/images/2026-05-04-catching-up-on-java/04-records-sealed-types.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/04-records-sealed-types.png' | relative_url }})
+
+*Records, sealed types, pattern matching, and switch snap together like puzzle pieces for modeling a fixed set of cases.*
 
 ## Data and Pattern Matching
 
@@ -307,11 +317,11 @@ This is the cluster of features that most changes how new Java code is shaped. I
 
 ### Records (Java 16)
 
-Records exist to fix a specific, long-standing complaint about Java: writing a small value class was wildly out of proportion to what the class actually meant. A type that represented "a pair of integer coordinates" needed two final fields, a constructor that assigned them, two accessors, an `equals` method that checked both components, a `hashCode` method that combined them, and a `toString` that printed them. Sixty lines of code to express what was conceptually two integers and a name. Worse, every one of those sixty lines was a place where the implementation could drift out of sync with the intent: an `equals` that forgot a new field, a `hashCode` that didn't include a field that `equals` did, a constructor that assigned in the wrong order. IDEs could generate the boilerplate, but generated code still has to be read, reviewed, and maintained.
+Records exist to fix a specific, long-standing complaint about Java: writing a small value class was wildly out of proportion to what the class meant. A type that represented "a pair of integer coordinates" needed two final fields, a constructor that assigned them, two accessors, an `equals` method that checked both components, a `hashCode` method that combined them, and a `toString` that printed them. Sixty lines of code to express what was conceptually two integers and a name. Worse, every one of those sixty lines was a place where the implementation could drift out of sync with the intent: an `equals` that forgot a new field, a `hashCode` that didn't include a field that `equals` did, a constructor that assigned in the wrong order. IDEs could generate the boilerplate, but generated code still has to be read, reviewed, and maintained.
 
 The pre-record landscape was full of partial fixes. Many teams used Lombok's `@Value` or `@Data` annotations to generate the boilerplate at compile time. Others used `AutoValue` or built abstract classes with hand-rolled builders. Each of these solved the symptom but added a dependency, a build-time code generator, or both. Records solve the underlying problem in the language itself.
 
-[JEP 395](https://openjdk.org/jeps/395) finalized records in Java 16 (with previews in 14 and 15). The design goal stated in the JEP is direct: provide a "nominal tuple" - a class whose contract is that it transparently holds a fixed set of values, defined once in the header, with all the obvious behavior derived from that declaration. The class declares its components, and the language fills in everything that follows from that declaration.
+[JEP 395](https://openjdk.org/jeps/395) finalized records in Java 16 (with previews in 14 and 15). The design goal stated in the JEP is direct: provide a "nominal tuple", a class whose contract is that it transparently holds a fixed set of values, defined once in the header, with all the obvious behavior derived from that declaration. The class declares its components, and the language fills in everything that follows from that declaration.
 
 ```java
 public record Point(int x, int y) {}
@@ -331,7 +341,7 @@ public record Point(int x, int y) {
 }
 ```
 
-Methods are fine; what records discourage is hidden state. You can declare static fields and static methods, but you can't add instance fields beyond the components - if a value isn't a declared component, it can't be part of the record's identity, and the language refuses to let you add it.
+Methods are fine; what records discourage is hidden state. You can declare static fields and static methods, but you can't add instance fields beyond the components. If a value isn't a declared component, it can't be part of the record's identity, and the language refuses to let you add it.
 
 You can also validate components in a [compact constructor](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4), which is the canonical constructor written in a shorter form:
 
@@ -347,7 +357,7 @@ public record Range(int low, int high) {
 
 The compact constructor doesn't list parameters or perform field assignment; it lets you validate or normalize the incoming values. After the constructor body runs, the compiler assigns the component fields from the current parameter values in order. You can also declare the canonical constructor explicitly if you need to, and you can add additional constructors that delegate to the canonical one with `this(...)`.
 
-A few constraints to know. Records can't extend another class (they implicitly extend [`java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html)) but they can implement interfaces. Records aren't a substitute for entities with mutable lifecycle - they're for data, not state. And because the components are part of the public API by name (the accessors take their names from the components), renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
+A few constraints to know. Records can't extend another class (they implicitly extend [`java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html)) but they can implement interfaces. Records aren't a substitute for entities with mutable lifecycle; they're for data, not state. And because the components are part of the public API by name (the accessors take their names from the components), renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
 The bigger purpose, beyond the boilerplate fix, is what records enable elsewhere in the language. Pattern matching for switch destructures records by component. Sealed types plus records give you closed algebraic data types. Stream pipelines that produce intermediate value tuples become much easier to write because you can define a small record inline as a return type instead of wrestling with `Map.Entry` or `Object[]`. Records were introduced to remove the boilerplate around transparent value carriers, but they ended up being a building block several other features build on.
 
@@ -399,7 +409,7 @@ Every direct subtype must be listed in `permits`, unless the permitted subtypes 
 
 On its own, `sealed` enforces an extension boundary in the type system. Paired with the next subsection, it's the feature that lets the compiler check exhaustiveness over a closed family of types.
 
-> **When to reach for it.** Use sealed types for closed domain hierarchies you control: result types (`Success | Failure`), AST or IR node types, finite state machines, command/event types in messaging code. Don't reach for `sealed` on hierarchies you expect third parties to extend - it's the wrong tool for an open extension point. The tradeoff against `enum` is that sealed-plus-records can carry per-case data, where enum constants share a single shape.
+> **When to reach for it.** Use sealed types for closed domain hierarchies you control: result types (`Success | Failure`), AST or IR node types, finite state machines, command/event types in messaging code. Don't reach for `sealed` on hierarchies you expect third parties to extend; it's the wrong tool for an open extension point. The tradeoff against `enum` is that sealed-plus-records can carry per-case data, where enum constants share a single shape.
 
 ### Pattern matching for switch and record patterns (Java 21)
 
@@ -415,7 +425,7 @@ double area(Shape shape) {
 }
 ```
 
-Three operations are happening at once. The switch matches on the runtime type of `shape`. Each case destructures the matched record into its components, binding them as local variables. And because `Shape` is sealed and the cases cover every permitted subtype, the compiler accepts the switch without a `default` branch - and will refuse to compile if you later add a fourth `Shape` variant without updating the switch.
+Three operations are happening at once. The switch matches on the runtime type of `shape`. Each case destructures the matched record into its components, binding them as local variables. And because `Shape` is sealed and the cases cover every permitted subtype, the compiler accepts the switch without a `default` branch, and will refuse to compile if you later add a fourth `Shape` variant without updating the switch.
 
 You can guard a case with `when`:
 
@@ -446,9 +456,11 @@ String describe(Line line) {
 
 `null` is handled explicitly with `case null` (otherwise a `null` selector throws `NullPointerException`, same as classic switch).
 
-> **When to reach for it.** Use this combination for any dispatch over a closed family of types: AST traversals, message handlers, result-type unwrapping, formatter logic. The most important property is the exhaustiveness check: when you add a new variant to the sealed parent, the compiler immediately tells you every switch that needs updating. The main tradeoff is one most languages share: very wide type families can produce sprawling switch blocks. If a single switch handles ten variants and each branch is non-trivial, consider extracting per-variant methods and dispatching to them, or splitting the variants into sub-hierarchies.
+> **When to reach for it.** Use this combination for any dispatch over a closed family of types: AST traversals, message handlers, result-type unwrapping, formatter logic. The most important property is the exhaustiveness check: when you add a new variant to the sealed parent, the compiler immediately tells you every switch that needs updating. The main tradeoff is one most languages share: wide type families can produce sprawling switch blocks. If a single switch handles ten variants and each branch is non-trivial, consider extracting per-variant methods and dispatching to them, or splitting the variants into sub-hierarchies.
 
-[![Airport generic type check showing type inference, wildcards, PECS, and runtime erasure]({{ '/assets/images/2026-05-04-catching-up-on-java/08-generics.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/08-generics.png' | relative_url }})
+[![A split-screen scene contrasts verbose old-style Java generics with more compact modern generics while the developer compares both eras.]({{ '/assets/images/2026-05-04-catching-up-on-java/05-generics.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/05-generics.png' | relative_url }})
+
+*Generics are still erased at runtime, but newer inference removes much of the typing you used to repeat.*
 
 ## Generics: A Flashback, Then What's New
 
@@ -539,8 +551,6 @@ List<Integer> sorted = new ArrayList<Integer>(input);
 Collections.sort(sorted);
 ```
 
-Hold this picture; the next subsection is largely about how these verbose patterns shrank or disappeared.
-
 ### What changed since
 
 **Diamond operator (Java 7), extended to anonymous classes (Java 9).** Already covered above. The right-hand side infers from the left:
@@ -619,9 +629,9 @@ if (nums instanceof ArrayList<? extends Number> al) {
 }
 ```
 
-This is an honest limitation. Don't expect Scala-level pattern power over generic types.
+This is a real limitation. Don't expect Scala-level pattern power over generic types.
 
-**What hasn't changed: erasure.** Still no `new T[]`, still no `T.class` without a `Class<T>` token, still no `List<int>` (you use `IntStream` or boxed `List<Integer>`). [Project Valhalla](https://openjdk.org/projects/valhalla/) has been promising value types and specialized generics for years - the recent push is around [JEP 401](https://openjdk.org/jeps/401) for value classes - but as of writing, none of it has landed in a release.
+**What hasn't changed: erasure.** Still no `new T[]`, still no `T.class` without a `Class<T>` token, still no `List<int>` (you use `IntStream` or boxed `List<Integer>`). [Project Valhalla](https://openjdk.org/projects/valhalla/) has been promising value types and specialized generics for years; the recent push is around [JEP 401](https://openjdk.org/jeps/401) for value classes, but as of writing, none of it has landed in a release.
 
 **Canonical generic APIs.** If you want to recalibrate generics intuition fast, read the signatures of the heavily-generic post-2010 APIs:
 
@@ -635,7 +645,11 @@ This is an honest limitation. Don't expect Scala-level pattern power over generi
 
 PECS appears everywhere. Multiple type parameters on a single method are routine. Once these signatures stop looking dense, you can read a method's contract directly off its declaration without running it through a translator in your head.
 
-> **When to reach for it.** A few rules of thumb that come up a lot. Use bounded wildcards (`? extends`, `? super`) on parameter types in public APIs when you only consume or only produce; use a regular type parameter when the method does both. Don't put wildcards on return types - they push the wildcard problem onto every caller. Suppress unchecked warnings only at the smallest scope where the cast is genuinely safe, and write a one-line comment explaining why. And avoid raw types entirely; the only place they belong in modern code is in narrow interop with very old libraries that haven't been generified.
+> **When to reach for it.** A few rules of thumb that come up a lot. Use bounded wildcards (`? extends`, `? super`) on parameter types in public APIs when you only consume or only produce; use a regular type parameter when the method does both. Don't put wildcards on return types; they push the wildcard problem onto every caller. Suppress unchecked warnings only at the smallest scope where the cast is genuinely safe, and write a one-line comment explaining why. And avoid raw types entirely; the only place they belong in modern code is in narrow interop with old libraries that haven't been generified.
+
+[![Three friendly mascots represent Streams, Optional, and java.time while the developer greets them in a cheerful modern Java scene.]({{ '/assets/images/2026-05-04-catching-up-on-java/06-trio-mascots.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/06-trio-mascots.png' | relative_url }})
+
+*Streams transform collections, Optional names absence, and java.time keeps dates from pretending time zones are simple.*
 
 ## The Java 8 Core Library Trio
 
@@ -689,7 +703,7 @@ OptionalDouble avgAge = users.stream().mapToInt(User::age).average();
 
 And `parallelStream()` (or `stream().parallel()`) splits the source for parallel execution, usually on the common ForkJoinPool in the JDK implementation. Tempting and often a trap.
 
-> **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations - filter, map, group, reduce - and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version - the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
+> **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations (filter, map, group, reduce), and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version: the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
 
 ### Optional
 
@@ -706,17 +720,15 @@ Optional<User> maybe = repo.findByEmail("ada@example.com");
 String display = maybe.map(User::name).orElse("unknown");
 ```
 
-The useful methods: `map`, `flatMap`, `filter` for transformation; `orElse`, `orElseGet`, `orElseThrow` for unwrapping; `ifPresent`, `ifPresentOrElse` for side-effecting use. Avoid `get()` - it throws if empty, and the same call written with `orElseThrow(...)` is clearer about why.
+The useful methods: `map`, `flatMap`, `filter` for transformation; `orElse`, `orElseGet`, `orElseThrow` for unwrapping; `ifPresent`, `ifPresentOrElse` for side-effecting use. Avoid `get()`; it throws if empty, and the same call written with `orElseThrow(...)` is clearer about why.
 
 A few well-known gotchas. `Optional.of(null)` throws (use `ofNullable`). `Optional` is a value-based class and does not implement `Serializable`, so don't put it in fields you persist. And the constructor for `Optional` is private; the factories (`of`, `ofNullable`, `empty`) are the only way in.
 
-> **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections - return an empty list, not `Optional<List<T>>`. The whole feature is contested; plenty of teams use it heavily and plenty consider it overused. The pragmatic rule that holds up: return-type only, and only when absence is a genuine, expected outcome.
-
-[![java.time dashboard contrasting legacy Date and Calendar with Instant, LocalDateTime, ZonedDateTime, Duration, and Period]({{ '/assets/images/2026-05-04-catching-up-on-java/11-time-zone.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/11-time-zone.png' | relative_url }})
+> **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections; return an empty list, not `Optional<List<T>>`. The whole feature is contested; plenty of teams use it heavily and plenty consider it overused. The rule that holds up: return-type only, and only when absence is a genuine, expected outcome.
 
 ### java.time
 
-[JSR-310](https://jcp.org/en/jsr/detail?id=310) gave Java a real date/time API in [`java.time`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html), retiring `Date`, `Calendar`, and `SimpleDateFormat` for almost all modern code. The package is large, but the types you'll actually reach for are a small set:
+[JSR-310](https://jcp.org/en/jsr/detail?id=310) gave Java a real date/time API in [`java.time`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html), retiring `Date`, `Calendar`, and `SimpleDateFormat` for almost all modern code. The package is large, but the types you'll reach for are a small set:
 
 ```java
 Instant now = Instant.now();                               // a moment in UTC
@@ -762,19 +774,21 @@ A handful of smaller standard-library additions from Java 9 onward that delete u
 - **Built-in HttpClient (Java 11).** `java.net.http.HttpClient` with HTTP/2 support out of the box. You can drop Apache HttpClient for many use cases.
 - **Sequenced collections (Java 21).** `getFirst`, `getLast`, `reversed`. A unified API across ordered collections.
 
+[![Hundreds of tiny lightweight virtual-thread workers calmly handle many tasks while a few bulky OS-thread workers stand off to the side.]({{ '/assets/images/2026-05-04-catching-up-on-java/07-virtual-threads.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/07-virtual-threads.png' | relative_url }})
+
+*Virtual threads let many blocking tasks wait without reserving one bulky operating-system thread each.*
+
 ## Concurrency, in Brief
 
 Concurrency deserves its own post, but two changes are worth naming here so you know they exist.
 
 `CompletableFuture` (Java 8) is the composable async story. It replaced most uses of the older `Future` for callback-style chaining and combination of asynchronous computations.
 
-The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can create very large numbers of them. For high-concurrency, blocking I/O-bound request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and many blocked requests can coexist without tying up an OS thread per request. They do not make CPU-bound work faster by themselves. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
+The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can create large numbers of them. For high-concurrency, blocking I/O-bound request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and many blocked requests can coexist without tying up an OS thread per request. They do not make CPU-bound work faster by themselves. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
 
 ## Tooling and Packaging, in Brief
 
 A few tooling changes you'll bump into. `jshell` (Java 9) is a real REPL. `java Hello.java` (Java 11) runs a single-file source program directly, with no separate `javac` step. Helpful NullPointerExceptions arrived in Java 14 and tell you which variable was null; in Java 14 they were behind `-XX:+ShowCodeDetailsInExceptionMessages`, and later releases made them the normal experience. The JDK is now modular under the JPMS module system (Java 9), which most application code still ignores; it's mostly why you sometimes see `--add-opens` flags. GraalVM Native Image is worth a name-check for startup-sensitive workloads, though it lives outside the JDK proper.
-
-[![Java museum of almosts with exhibits for Optional, JPMS modules, checked exceptions, and Project Valhalla]({{ '/assets/images/2026-05-04-catching-up-on-java/13-java-museum.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/13-java-museum.png' | relative_url }})
 
 ## What Didn't Pan Out as Expected
 
@@ -784,6 +798,8 @@ Honest notes for someone returning to the ecosystem.
 - JPMS modules are widely skipped by application code, even a decade after they shipped.
 - Checked exceptions are still here. Lambdas made them more awkward, not less.
 - Project Valhalla (value types, specialized generics) has been promised for years and hasn't landed.
+
+[![The developer confidently walks through the modern Java city holding a checklist of concepts she has learned, including lambdas, records, pattern matching, streams, Optional, java.time, and virtual threads.]({{ '/assets/images/2026-05-04-catching-up-on-java/08-closing.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/08-closing.png' | relative_url }})
 
 ## Summary
 
