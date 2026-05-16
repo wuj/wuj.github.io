@@ -3,7 +3,7 @@ title: "Catching Up on Java"
 excerpt: "A tour of the language and library changes an early 2000s-era Java developer should know about, from lambdas and records to pattern matching and virtual threads."
 description: "A tour of the language and library changes a 2000s-era Java developer should know about, from lambdas and records to pattern matching and virtual threads."
 date: 2026-05-04
-last_modified_at: 2026-05-04
+last_modified_at: 2026-05-16
 categories: [meta]
 tags: [java, language-features, generics, records, pattern-matching, streams, lambdas, virtual-threads]
 published: true
@@ -15,9 +15,12 @@ Welcome to the 2026 edition of Catching up on Java! If you last wrote Java aroun
 
 This post is a tour of the language and standard library changes worth knowing about, specifically for someone who knew Java well in the early 2000s and hasn't kept close tabs since. I'm not going to list every change. That would be far too much work and impossible in a single blog article. Instead, I'll just focus on the changes that stood out to me.
 
-[![Tiny helper robots clean up stacks of old Java boilerplate while the main developer looks on approvingly.]({{ '/assets/images/2026-05-04-catching-up-on-java/02-boilerplate-cleanup-crew.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/02-boilerplate-cleanup-crew.png' | relative_url }})
-
-*The boilerplate crew sweeps away repeated ceremony so the useful Java code is easier to spot.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/02-boilerplate-cleanup-crew.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/02-boilerplate-cleanup-crew.png' | relative_url }}" alt="Tiny helper robots clean up stacks of old Java boilerplate while the main developer looks on approvingly." loading="lazy">
+  </a>
+  <figcaption><strong>The boilerplate crew sweeps away repeated ceremony so the useful Java code is easier to spot.</strong></figcaption>
+</figure>
 
 ## The Small Syntactic Wins
 
@@ -155,9 +158,12 @@ Either give the diamond a target type, or write the parameter explicitly: `var l
 
 > **When to reach for it.** Use `var` when the right-hand side already names the type (a constructor call, a static factory like `List.of(...)`, a `new Foo()`). Avoid it when the type comes from a method whose name doesn't make the return type obvious; a reader shouldn't have to chase the declaration to know what `result` is. Avoid it for numeric literals where the inferred type matters (`var x = 1` is `int`, not `long`). And remember the boundary: Java 10 `var` is for local variables, not field declarations, method signatures, or return types. Java 11's lambda form (`(var x, var y) -> ...`) is the special case, and all lambda parameters have to use `var` or none of them can.
 
-[![The developer upgrades a clunky old statement machine into a sleek expression-oriented machine labeled with lambdas, switch expressions, and text blocks.]({{ '/assets/images/2026-05-04-catching-up-on-java/03-expression-upgrade-machine.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/03-expression-upgrade-machine.png' | relative_url }})
-
-*The old statement contraption gets an upgrade: lambdas, switch expressions, and text blocks help more code produce values directly.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/03-expression-upgrade-machine.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/03-expression-upgrade-machine.png' | relative_url }}" alt="The developer upgrades a clunky old statement machine into a sleek expression-oriented machine labeled with lambdas, switch expressions, and text blocks." loading="lazy">
+  </a>
+  <figcaption><strong>The old statement contraption gets an upgrade: lambdas, switch expressions, and text blocks help more code produce values directly.</strong></figcaption>
+</figure>
 
 ## Expression-Oriented Code
 
@@ -303,13 +309,16 @@ String greeting = """
 
 And inside a text block, a trailing `\` suppresses the line break, which is occasionally useful for long single-line content split across source lines for readability.
 
-Java still has no string interpolation. A preview feature ([JEP 430](https://openjdk.org/jeps/430), string templates) shipped briefly and was withdrawn for redesign, so for now `formatted` is the idiomatic choice.
+Java still has no string interpolation. String templates were previewed in Java 21 and 22 ([JEP 430](https://openjdk.org/jeps/430), [JEP 459](https://openjdk.org/jeps/459)), then the third-preview JEP was [withdrawn](https://openjdk.org/jeps/465), so for now `formatted` is a standard-library option for simple templates.
 
 > **When to reach for it.** Use text blocks for any embedded literal that has natural line structure: SQL, JSON, HTML, regex with `Pattern.COMMENTS`, multi-line error messages. The auto-stripping rule means the indentation of the closing `"""` matters, so eyeball it when copying snippets between files. The main tradeoff is that text blocks are still plain `String`, not a templating type, so for anything with many substitutions a real template engine still beats `formatted`.
 
-[![The developer assembles puzzle pieces labeled records, sealed types, pattern matching, and switch into a modern Java domain model.]({{ '/assets/images/2026-05-04-catching-up-on-java/04-records-sealed-types.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/04-records-sealed-types.png' | relative_url }})
-
-*Records, sealed types, pattern matching, and switch snap together like puzzle pieces for modeling a fixed set of cases.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/04-records-sealed-types.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/04-records-sealed-types.png' | relative_url }}" alt="The developer assembles puzzle pieces labeled records, sealed types, pattern matching, and switch into a modern Java domain model." loading="lazy">
+  </a>
+  <figcaption><strong>Records, sealed types, pattern matching, and switch snap together like puzzle pieces for modeling a fixed set of cases.</strong></figcaption>
+</figure>
 
 ## Data and Pattern Matching
 
@@ -359,7 +368,7 @@ The compact constructor doesn't list parameters or perform field assignment; it 
 
 A few constraints to know. Records can't extend another class (they implicitly extend [`java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html)) but they can implement interfaces. Records aren't a substitute for entities with mutable lifecycle; they're for data, not state. And because the components are part of the public API by name (the accessors take their names from the components), renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
-The bigger purpose, beyond the boilerplate fix, is what records enable elsewhere in the language. Pattern matching for switch destructures records by component. Sealed types plus records give you closed algebraic data types. Stream pipelines that produce intermediate value tuples become much easier to write because you can define a small record inline as a return type instead of wrestling with `Map.Entry` or `Object[]`. Records were introduced to remove the boilerplate around transparent value carriers, but they ended up being a building block several other features build on.
+The bigger purpose, beyond the boilerplate fix, is what records enable elsewhere in the language. Record patterns destructure records by component, and pattern matching for switch lets those patterns appear in case labels. Sealed types plus records give you closed algebraic data types. Stream pipelines that produce intermediate value tuples become much easier to write because you can define a small record inline as a return type instead of wrestling with `Map.Entry` or `Object[]`. Records were introduced to remove the boilerplate around transparent value carriers, but they ended up being a building block several other features build on.
 
 > **When to reach for it.** Use records for simple value carriers: DTOs, query results, parameter bundles, coordinate types, multi-value return values from helper methods. If a component refers to mutable data, make a defensive copy in the constructor if callers should not be able to mutate the record's observable state. The constraint that records are final and have all-public accessors makes them a poor fit for ORM entities or anything that needs hidden state. The other tradeoff is that record components are part of the public API by name, so renaming a component is a breaking change in a way that renaming a private field of a regular class isn't.
 
@@ -425,7 +434,7 @@ double area(Shape shape) {
 }
 ```
 
-Three operations are happening at once. The switch matches on the runtime type of `shape`. Each case destructures the matched record into its components, binding them as local variables. And because `Shape` is sealed and the cases cover every permitted subtype, the compiler accepts the switch without a `default` branch, and will refuse to compile if you later add a fourth `Shape` variant without updating the switch.
+Three operations are happening at once. The switch matches on the runtime type of `shape`. Each record pattern destructures the matched record into its components, binding them as local variables. And because `Shape` is sealed and the cases cover every permitted subtype, the compiler accepts the switch without a `default` branch, and will refuse to compile when you recompile after adding a fourth `Shape` variant without updating the switch.
 
 You can guard a case with `when`:
 
@@ -458,9 +467,12 @@ String describe(Line line) {
 
 > **When to reach for it.** Use this combination for any dispatch over a closed family of types: AST traversals, message handlers, result-type unwrapping, formatter logic. The most important property is the exhaustiveness check: when you add a new variant to the sealed parent, the compiler immediately tells you every switch that needs updating. The main tradeoff is one most languages share: wide type families can produce sprawling switch blocks. If a single switch handles ten variants and each branch is non-trivial, consider extracting per-variant methods and dispatching to them, or splitting the variants into sub-hierarchies.
 
-[![A split-screen scene contrasts verbose old-style Java generics with more compact modern generics while the developer compares both eras.]({{ '/assets/images/2026-05-04-catching-up-on-java/05-generics.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/05-generics.png' | relative_url }})
-
-*Generics are still erased at runtime, but newer inference removes much of the typing you used to repeat.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/05-generics.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/05-generics.png' | relative_url }}" alt="A split-screen scene contrasts verbose old-style Java generics with more compact modern generics while the developer compares both eras." loading="lazy">
+  </a>
+  <figcaption><strong>Generics are still erased at runtime, but newer inference removes much of the typing you used to repeat.</strong></figcaption>
+</figure>
 
 ## Generics: A Flashback, Then What's New
 
@@ -631,7 +643,7 @@ if (nums instanceof ArrayList<? extends Number> al) {
 
 This is a real limitation. Don't expect Scala-level pattern power over generic types.
 
-**What hasn't changed: erasure.** Still no `new T[]`, still no `T.class` without a `Class<T>` token, still no `List<int>` (you use `IntStream` or boxed `List<Integer>`). [Project Valhalla](https://openjdk.org/projects/valhalla/) has been promising value types and specialized generics for years; the recent push is around [JEP 401](https://openjdk.org/jeps/401) for value classes, but as of writing, none of it has landed in a release.
+**What hasn't changed: erasure.** Still no `new T[]`, still no `T.class` without a `Class<T>` token, still no `List<int>` (you use `IntStream` or boxed `List<Integer>`). [Project Valhalla](https://openjdk.org/projects/valhalla/value-objects) is the OpenJDK effort behind value classes and specialized generics; the recent push is around [JEP 401](https://openjdk.org/jeps/401) for value classes, but as of May 16, 2026, JEP 401 has no target release and value classes/specialized generics are not standard Java features.
 
 **Canonical generic APIs.** If you want to recalibrate generics intuition fast, read the signatures of the heavily-generic post-2010 APIs:
 
@@ -647,9 +659,12 @@ PECS appears everywhere. Multiple type parameters on a single method are routine
 
 > **When to reach for it.** A few rules of thumb that come up a lot. Use bounded wildcards (`? extends`, `? super`) on parameter types in public APIs when you only consume or only produce; use a regular type parameter when the method does both. Don't put wildcards on return types; they push the wildcard problem onto every caller. Suppress unchecked warnings only at the smallest scope where the cast is genuinely safe, and write a one-line comment explaining why. And avoid raw types entirely; the only place they belong in modern code is in narrow interop with old libraries that haven't been generified.
 
-[![Three friendly mascots represent Streams, Optional, and java.time while the developer greets them in a cheerful modern Java scene.]({{ '/assets/images/2026-05-04-catching-up-on-java/06-trio-mascots.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/06-trio-mascots.png' | relative_url }})
-
-*Streams transform collections, Optional names absence, and java.time keeps dates from pretending time zones are simple.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/06-trio-mascots.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/06-trio-mascots.png' | relative_url }}" alt="Three friendly mascots represent Streams, Optional, and java.time while the developer greets them in a cheerful modern Java scene." loading="lazy">
+  </a>
+  <figcaption><strong>Streams transform collections, Optional names absence, and java.time keeps dates from pretending time zones are simple.</strong></figcaption>
+</figure>
 
 ## The Java 8 Core Library Trio
 
@@ -701,9 +716,9 @@ int totalAge = users.stream().mapToInt(User::age).sum();
 OptionalDouble avgAge = users.stream().mapToInt(User::age).average();
 ```
 
-And `parallelStream()` (or `stream().parallel()`) splits the source for parallel execution, usually on the common ForkJoinPool in the JDK implementation. Tempting and often a trap.
+And `parallelStream()` (or `stream().parallel()`) splits the source for parallel execution. In the JDK implementation, that usually means work submitted to the common ForkJoinPool. Tempting, but not automatically faster.
 
-> **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations (filter, map, group, reduce), and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines are painful (the operations all show up as `lambda$N`), and `parallelStream` is rarely faster than the sequential version: the source has to split well, the work has to be substantial, and the operations have to be stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
+> **When to reach for it.** Use a stream when the body of the loop is a sequence of transformations (filter, map, group, reduce), and especially when the alternative is multiple temporary collections built by hand. Reach for a plain `for` loop when the body has early returns, accumulator side effects, or branching that would force you into stream gymnastics. Two specific tradeoffs: stack traces inside long pipelines can be harder to read because useful operation names often disappear behind generated lambda frames, and `parallelStream` only helps when the source splits well, the work is substantial, and the operations are stateless and order-independent. Default to sequential streams; reach for parallel only with a real benchmark in hand.
 
 ### Optional
 
@@ -724,11 +739,11 @@ The useful methods: `map`, `flatMap`, `filter` for transformation; `orElse`, `or
 
 A few well-known gotchas. `Optional.of(null)` throws (use `ofNullable`). `Optional` is a value-based class and does not implement `Serializable`, so don't put it in fields you persist. And the constructor for `Optional` is private; the factories (`of`, `ofNullable`, `empty`) are the only way in.
 
-> **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections; return an empty list, not `Optional<List<T>>`. The whole feature is contested; plenty of teams use it heavily and plenty consider it overused. The rule that holds up: return-type only, and only when absence is a genuine, expected outcome.
+> **When to reach for it.** Use `Optional` as a return type for methods that may legitimately have no answer: lookups, parses, first-match queries. Don't use it as a field type (it adds a wrapper to every read for no benefit) or as a parameter type (callers will pass `Optional.empty()` instead of just calling the no-arg overload, which is worse). Don't use it for collections; return an empty list, not `Optional<List<T>>`. The Javadoc frames `Optional` primarily as a return type, and that's the narrow rule of thumb I trust most: return-type only, and only when absence is a genuine, expected outcome.
 
 ### java.time
 
-[JSR-310](https://jcp.org/en/jsr/detail?id=310) gave Java a real date/time API in [`java.time`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html), retiring `Date`, `Calendar`, and `SimpleDateFormat` for almost all modern code. The package is large, but the types you'll reach for are a small set:
+[JSR-310](https://jcp.org/en/jsr/detail?id=310) gave Java a real date/time API in [`java.time`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html), superseding `Date`, `Calendar`, and `SimpleDateFormat` for almost all modern code. The package is large, but the types you'll reach for are a small set:
 
 ```java
 Instant now = Instant.now();                               // a moment in UTC
@@ -768,36 +783,39 @@ LocalDate parsed = LocalDate.parse("2026-05-04", iso);
 
 A handful of smaller standard-library additions from Java 9 onward that delete utility classes you used to write or pull in from Guava and Apache Commons.
 
-- **Collection factory methods (Java 9).** `List.of(1, 2, 3)`, `Map.of("a", 1, "b", 2)`. Unmodifiable collection factories, especially handy for literals, that reject `null`; mutable elements can still mutate. Use `Map.ofEntries(...)` for larger maps.
-- **Stream additions (Java 9, 16).** `takeWhile`, `dropWhile`, and `Stream.toList()`.
-- **String methods and Files helpers (Java 11).** `strip`, `isBlank`, `lines`, `repeat`, plus `Files.readString` and `Files.writeString`.
-- **Built-in HttpClient (Java 11).** `java.net.http.HttpClient` with HTTP/2 support out of the box. You can drop Apache HttpClient for many use cases.
-- **Sequenced collections (Java 21).** `getFirst`, `getLast`, `reversed`. A unified API across ordered collections.
+- **Collection factory methods (Java 9).** [JEP 269](https://openjdk.org/jeps/269) added `List.of(1, 2, 3)`, `Map.of("a", 1, "b", 2)`, and related factories. They create unmodifiable collections, reject `null`, and are especially handy for literals; mutable elements can still mutate. Use `Map.ofEntries(...)` for larger maps.
+- **Stream additions (Java 9, 16).** `takeWhile`, `dropWhile`, and [`Stream.toList()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#toList()).
+- **String methods and Files helpers (Java 11).** [`strip`, `isBlank`, `lines`, `repeat`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html), plus [`Files.readString` and `Files.writeString`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html).
+- **Built-in HttpClient (Java 11).** [JEP 321](https://openjdk.org/jeps/321) standardized `java.net.http.HttpClient`, with HTTP/2 support out of the box. For straightforward HTTP clients, the standard API may be enough.
+- **Sequenced collections (Java 21).** [JEP 431](https://openjdk.org/jeps/431) added `getFirst`, `getLast`, and `reversed`: a unified API across ordered collections.
 
-[![Hundreds of tiny lightweight virtual-thread workers calmly handle many tasks while a few bulky OS-thread workers stand off to the side.]({{ '/assets/images/2026-05-04-catching-up-on-java/07-virtual-threads.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/07-virtual-threads.png' | relative_url }})
-
-*Virtual threads let many blocking tasks wait without reserving one bulky operating-system thread each.*
+<figure class="post-figure">
+  <a href="{{ '/assets/images/2026-05-04-catching-up-on-java/full/07-virtual-threads.png' | relative_url }}">
+    <img src="{{ '/assets/images/2026-05-04-catching-up-on-java/07-virtual-threads.png' | relative_url }}" alt="Hundreds of tiny lightweight virtual-thread workers calmly handle many tasks while a few bulky OS-thread workers stand off to the side." loading="lazy">
+  </a>
+  <figcaption><strong>Virtual threads let many blocking tasks wait without reserving one bulky operating-system thread each.</strong></figcaption>
+</figure>
 
 ## Concurrency, in Brief
 
 Concurrency deserves its own post, but two changes are worth naming here so you know they exist.
 
-`CompletableFuture` (Java 8) is the composable async story. It replaced most uses of the older `Future` for callback-style chaining and combination of asynchronous computations.
+[`CompletableFuture`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CompletableFuture.html) (Java 8) is the composable async story. It covers many cases where the older `Future` is too limited, especially callback-style chaining and combination of asynchronous computations.
 
-The bigger change is virtual threads (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can create large numbers of them. For high-concurrency, blocking I/O-bound request-per-thread server code, they remove much of the case for reactive frameworks: write straight-line blocking code, run it on a virtual thread, and many blocked requests can coexist without tying up an OS thread per request. They do not make CPU-bound work faster by themselves. Scoped values were finalized in Java 25, and structured concurrency is still a preview API in Java 26.
+The bigger change is [virtual threads](https://openjdk.org/jeps/444) (Java 21). They're cheap threads scheduled by the JVM rather than the OS, which means you can create large numbers of them. For high-concurrency, blocking I/O-bound request-per-thread server code, they remove one common reason teams reached for reactive stacks: avoiding one OS thread per blocked request. Write straight-line blocking code, run it on a virtual thread, and many blocked requests can coexist without tying up an OS thread per request. They do not make CPU-bound work faster by themselves. [Scoped values](https://openjdk.org/jeps/506) were finalized in Java 25, and [structured concurrency](https://openjdk.org/jeps/525) is still a preview API in Java 26.
 
 ## Tooling and Packaging, in Brief
 
-A few tooling changes you'll bump into. `jshell` (Java 9) is a real REPL. `java Hello.java` (Java 11) runs a single-file source program directly, with no separate `javac` step. Helpful NullPointerExceptions arrived in Java 14 and tell you which variable was null; in Java 14 they were behind `-XX:+ShowCodeDetailsInExceptionMessages`, and later releases made them the normal experience. The JDK is now modular under the JPMS module system (Java 9), which most application code still ignores; it's mostly why you sometimes see `--add-opens` flags. GraalVM Native Image is worth a name-check for startup-sensitive workloads, though it lives outside the JDK proper.
+A few tooling changes you'll bump into. [JEP 222](https://openjdk.org/jeps/222) added `jshell` (Java 9), a real REPL. [JEP 330](https://openjdk.org/jeps/330) made `java Hello.java` (Java 11) run a single-file source program directly, with no separate `javac` step. [Helpful NullPointerExceptions](https://openjdk.org/jeps/358) arrived in Java 14 and tell you which variable was null; in Java 14 they were behind `-XX:+ShowCodeDetailsInExceptionMessages`, and Java 15 made them the normal experience. The JDK is now modular under the [JPMS module system](https://openjdk.org/jeps/261) (Java 9), but ordinary classpath applications still exist; if you do not define modules, you're most likely to notice JPMS through module-path boundaries and `--add-opens` flags. [GraalVM Native Image](https://www.graalvm.org/latest/reference-manual/native-image/) is worth a name-check for startup-sensitive workloads, though it lives outside the standard Java SE API/OpenJDK feature set as GraalVM tooling.
 
 ## What Didn't Pan Out as Expected
 
 Honest notes for someone returning to the ecosystem.
 
-- `Optional` is contested. Plenty of teams use it heavily; plenty consider it overused.
-- JPMS modules are widely skipped by application code, even a decade after they shipped.
+- `Optional` is useful but easy to overuse. The Javadoc frames it primarily as a return type.
+- JPMS modules did not make classpath applications disappear; one migration pain point is reflective access that needs `--add-opens`.
 - Checked exceptions are still here. Lambdas made them more awkward, not less.
-- Project Valhalla (value types, specialized generics) has been promised for years and hasn't landed.
+- Project Valhalla's value classes and specialized generics are still not standard Java features.
 
 [![The developer confidently walks through the modern Java city holding a checklist of concepts she has learned, including lambdas, records, pattern matching, streams, Optional, java.time, and virtual threads.]({{ '/assets/images/2026-05-04-catching-up-on-java/08-closing.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/08-closing.png' | relative_url }})
 
@@ -811,6 +829,28 @@ The generics story is interesting because the feature itself was already there i
 
 If you want a starting place: read the `java.time` package summary, then the records JEP, then write one small program. A reasonable one is a single-file script that uses virtual threads and the new `HttpClient` to fan out a handful of HTTP requests. It's about thirty lines, it touches three of the changes covered in this post, and the experience of writing it is the fastest way to recalibrate what modern Java feels like.
 
-You don't need to switch your production code to the newest JDK to get value out of any of this. Java 17 gets you records, sealed types, switch expressions, text blocks, and pattern matching for `instanceof`. Java 21 gets you finalized pattern matching for `switch`, record patterns, virtual threads, and sequenced collections. Java 25 is the current Oracle LTS as of May 2026 and adds finalized scoped values, while Java 26 keeps structured concurrency in preview. The library additions go back further: streams, `Optional`, and `java.time` are Java 8, which means even conservative shops have had access to them for a decade. The biggest practical shift, virtual threads, does require Java 21, and is the one feature where moving the version genuinely changes what your application can do rather than just how its code reads.
+You don't need to switch your production code to the newest JDK to get value out of any of this. Java 17 gets you records, sealed types, switch expressions, text blocks, and pattern matching for `instanceof`. Java 21 gets you finalized pattern matching for `switch`, record patterns, virtual threads, and sequenced collections. As of May 16, 2026, Java 26 is the current feature release, and Java 25 is Oracle's latest LTS release. Java 25 adds finalized scoped values, while Java 26 keeps structured concurrency in preview. The library additions go back further: streams, `Optional`, and `java.time` are Java 8, which means even conservative shops have had access to them for a decade. The biggest practical shift, virtual threads, does require Java 21, and is the one feature where moving the version genuinely changes what your application can do rather than just how its code reads.
 
 Java has been a much-improved language for some time now, the changes are largely additive, and if you stopped paying attention around 2010 there's about a weekend's worth of reading to get caught up on what's worth using.
+
+## Sources
+
+- [Oracle Java language enhancements guide](https://docs.oracle.com/javase/8/docs/technotes/guides/language/enhancements.html): Java 7 and Java 8 language-feature overview, including try-with-resources, multi-catch, diamond, string switch, numeric literal underscores, lambdas, method references, and improved type inference.
+- [Java Language Specification, Java SE 21](https://docs.oracle.com/javase/specs/jls/se21/html/index.html): language rules cited throughout, especially statements, expressions, literals, records, generics, erasure, and pattern matching.
+- [JEP 101: Generalized Target-Type Inference](https://openjdk.org/jeps/101): Java 8 improvements to method-context and chained-call inference.
+- [JEP 126: Lambda Expressions and Virtual Extension Methods](https://openjdk.org/jeps/126): lambdas, method references, target typing, and Java 8 library support.
+- [JEP 213: Milling Project Coin](https://openjdk.org/jeps/213): Java 9 refinements to Java 7 small features, including diamond with anonymous classes and effectively-final resources in try-with-resources.
+- [JEP 286: Local-Variable Type Inference](https://openjdk.org/jeps/286) and [JEP 323: Local-Variable Syntax for Lambda Parameters](https://openjdk.org/jeps/323): `var` for local variables and lambda parameters.
+- [JEP 361: Switch Expressions](https://openjdk.org/jeps/361), [JEP 378: Text Blocks](https://openjdk.org/jeps/378), [JEP 395: Records](https://openjdk.org/jeps/395), [JEP 394: Pattern Matching for instanceof](https://openjdk.org/jeps/394), [JEP 409: Sealed Classes](https://openjdk.org/jeps/409), [JEP 441: Pattern Matching for switch](https://openjdk.org/jeps/441), and [JEP 440: Record Patterns](https://openjdk.org/jeps/440): the main post-Java-8 language features covered in the records, sealed types, and pattern-matching sections.
+- [JEP 430: String Templates (Preview)](https://openjdk.org/jeps/430), [JEP 459: String Templates (Second Preview)](https://openjdk.org/jeps/459), and [JEP 465: String Templates (Third Preview)](https://openjdk.org/jeps/465): string-template preview and withdrawal history.
+- [Project Valhalla value objects](https://openjdk.org/projects/valhalla/value-objects) and [JEP 401: Value Classes and Objects](https://openjdk.org/jeps/401): current value-class work and the fact that value classes/specialized generics are not yet standard Java features.
+- [JEP 107: Bulk Data Operations for Collections](https://openjdk.org/jeps/107), [Stream API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html), and [Collectors API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collectors.html): streams, laziness, one-use behavior, `Stream.toList()`, grouping, partitioning, and collector behavior.
+- [Optional API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Optional.html): `Optional` methods, value-based-class status, `ofNullable`, `get`, `orElseThrow`, and the API note that frames `Optional` primarily as a return type.
+- [JSR 310](https://jcp.org/en/jsr/detail?id=310), [java.time package summary](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html), and [DateTimeFormatter API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): the Java 8 date/time API, type model, immutability/thread-safety notes, `Duration` versus `Period`, and formatter behavior.
+- [JEP 269: Convenience Factory Methods for Collections](https://openjdk.org/jeps/269) and Oracle's [Creating Unmodifiable Lists, Sets, and Maps](https://docs.oracle.com/en/java/javase/21/core/creating-immutable-lists-sets-and-maps.html): collection factories, unmodifiable collections, null rejection, `Map.ofEntries`, and mutable-element caveats.
+- [String API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html), [Files API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html), [JEP 321: HTTP Client API](https://openjdk.org/jeps/321), and [HttpClient API](https://docs.oracle.com/en/java/javase/21/docs/api/java.net.http/java/net/http/HttpClient.html): Java 11 string/file helpers and the standard HTTP client.
+- [CompletableFuture API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CompletableFuture.html) and [CompletionStage API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CompletionStage.html): asynchronous composition, chaining, and combination APIs.
+- [JEP 444: Virtual Threads](https://openjdk.org/jeps/444), [JEP 506: Scoped Values](https://openjdk.org/jeps/506), and [JEP 525: Structured Concurrency (Sixth Preview)](https://openjdk.org/jeps/525): virtual threads in Java 21, scoped values finalized in Java 25, and structured concurrency remaining preview in Java 26.
+- [JEP 222: jshell](https://openjdk.org/jeps/222), [JEP 330: Launch Single-File Source-Code Programs](https://openjdk.org/jeps/330), [JEP 358: Helpful NullPointerExceptions](https://openjdk.org/jeps/358), [JDK 15 release notes](https://www.oracle.com/java/technologies/javase/15-relnote-issues.html), [JEP 261: Module System](https://openjdk.org/jeps/261), and the [JDK 9 migration guide](https://docs.oracle.com/javase/9/migrate/): REPL, single-file launch, helpful NPE behavior, JPMS, and `--add-opens`.
+- [JEP 322: Time-Based Release Versioning](https://openjdk.org/jeps/322), [Oracle Java SE Support Roadmap](https://www.oracle.com/java/technologies/java-se-support-roadmap.html), and [Oracle Java downloads](https://www.oracle.com/java/technologies/downloads/): six-month feature releases, Oracle LTS status, and the May 2026 Java 25/26 release-status claims.
+- [GraalVM Native Image documentation](https://www.graalvm.org/latest/reference-manual/native-image/): ahead-of-time compilation of Java applications into native executables with the `native-image` tool.

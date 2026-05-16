@@ -12,6 +12,8 @@ Before writing or editing prose in a file, read the surrounding prose. If the fi
 
 Default voice (use when there is nothing to match): write so a curious non-expert can follow along. Aim for the feel of a friend explaining something over coffee, not a textbook or a paper. Short sentences, contractions, plain words. When a technical term shows up for the first time, give a quick gloss in everyday language before leaning on it. Prefer concrete examples and analogies over abstract definitions. Skip warm-up phrases and essay-style intros ("In this post we will explore..."); just say the thing. It is fine to start sentences with "and", "but", or "so". If a sentence sounds stiff when read out loud, or would make a smart friend without the background reach for a dictionary, rewrite it.
 
+Contractions, rule of thumb: contract in explanation, keep the full form for hard warnings. Explanatory prose should use "don't", "can't", "isn't", "you're", "it's", "doesn't" - full forms like "do not" and "cannot" make explanation read as textbook. Reserve full forms for hard warnings or imperatives where the formality is the emphasis: "Do not collar the plates", "Never shove the bar toward the rack", "Always check the pins". The contrast is the point - if the body of the piece contracts freely, the rare full-form warning lands harder.
+
 All generated prose and code comments must be ASCII-only UTF-8: straight quotes, no curly quotes, no em dashes, no en dashes, no ellipsis characters, and no emojis. Use hyphens only for real hyphenation, not as dash substitutes.
 
 Avoid filler words that gloss over the actual mechanism:
