@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: page-with-social
 title: Tags
 permalink: /tags/
 description: "Browse posts on this site by topic. Each tag groups every post that shares a keyword, sorted by publication date."

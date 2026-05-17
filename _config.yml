@@ -27,7 +27,7 @@ defaults:
       path: ""
       type: pages
     values:
-      layout: page
+      layout: page-with-social
 exclude:
   - Gemfile
   - Gemfile.lock

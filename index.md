@@ -1,5 +1,5 @@
 ---
-layout: home
+layout: home-with-social
 description: "Personal site of Jeff Wu. Notes, ideas, and longer writing on software, systems, and other topics that are of interest to me."
 ---
 

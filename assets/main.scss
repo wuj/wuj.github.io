@@ -161,6 +161,16 @@ code.highlighter-rouge {
   display: none;
 }
 
+.post-jump {
+  font-size: 0.875em;
+  margin-bottom: 1.5rem;
+}
+
+.post-jump a,
+.post-jump a:visited {
+  color: #828282;
+}
+
 .post-comments {
   margin-top: 3rem;
   padding-top: 2rem;
@@ -177,26 +187,47 @@ code.highlighter-rouge {
 // still kicks in for taller content (comment threads), so this only matters
 // when the reported height is too small.
 #cusdis_thread iframe {
-  min-height: 340px;
+  min-height: 380px;
 }
 
-a.comments-float {
+a.comments-float,
+.social-float {
   display: none;
   position: fixed;
-  margin-left: -12rem;
-  top: 18rem;
+  margin-left: -13rem;
   z-index: 10;
+}
+
+a.comments-float { top: 18rem; }
+
+.social-float {
+  top: 26rem;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.social-float-title {
+  font-size: 0.85rem;
+  color: $brand-color;
+}
+
+a.comments-float,
+.social-float a {
+  width: 11rem;
   padding: 0.45rem 0.85rem;
   border: 1px solid $brand-color;
   border-radius: 6px;
   background: $background-color;
   color: $brand-color;
+  text-align: center;
   text-decoration: none;
   box-shadow: 0 2px 8px rgba(27, 31, 36, 0.08);
+  box-sizing: border-box;
 }
 
 @media screen and (min-width: 1100px) {
-  a.comments-float {
-    display: block;
-  }
+  a.comments-float { display: block; }
+  .social-float { display: flex; }
+  .post-jump { display: none; }
 }

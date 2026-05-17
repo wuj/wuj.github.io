@@ -10,9 +10,14 @@ layout: post
   {%- assign show_comments = false -%}
 {%- endif -%}
 
+{%- if show_comments -%}
+<p class="post-jump"><a href="#comments">Jump to comments</a></p>
+{%- endif -%}
+
 {{ content }}
 
 {%- if show_comments -%}
   {%- include cusdis-comments.html -%}
-  <a href="#comments" class="comments-float"><i class="fa-solid fa-comments"></i>&nbsp;&nbsp;Comments</a>
+  <a href="#comments" class="comments-float"><i class="fa-solid fa-comments"></i>&nbsp;Comments</a>
 {%- endif -%}
+{%- include social-panel.html -%}
