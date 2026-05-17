@@ -9,11 +9,13 @@ $base-line-height: 1.6;
 // Colors
 $text-color:       #1a1f23;
 $background-color: #ffffff;
-$brand-color:      #0969da;
+$brand-color:      #6B4423;
 
 // Layout (65 to 75 character measure)
 $content-width:    720px;
 
+// Must come before any CSS-producing rules: browsers ignore @import after rules.
+@import url("https://use.fontawesome.com/releases/v6.5.2/css/all.css");
 @import "minima";
 
 // Custom rules go after the import so they win on cascade ties.
@@ -37,18 +39,30 @@ $heading-scale: 0.8;
   h6 { font-size: 0.9em * $heading-scale; color: #555; }
 }
 
-// Site title: ~14% smaller than minima's default.
-// Note: minima sets .site-title font-size to roughly 1.625rem. Using `em`
-// here is a trap because em is relative to the parent's computed size, and
-// values under 1em ended up smaller than the body text rather than smaller
-// than minima's title. rem pins to the root font-size, giving a predictable
-// absolute target independent of parent context.
+// Header logo: an image replaces the site.title text. The text stays in the
+// DOM for screen readers, RSS, and SEO; text-indent: -9999px shoves it
+// off-screen so only the image is visible.
 .site-title,
 .site-title:visited {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-weight: 600;
-  letter-spacing: 0;
-  font-size: 1.4rem;
+  display: block;
+  width: 190px;
+  height: 190px;
+  background: url("/assets/images/header_190x190.png") no-repeat center / contain;
+  text-indent: -9999px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+// Drop minima's hairline under the header band; the 5px top border alone
+// frames the chrome. Footer top border matches the header top color
+// (#424242 = minima's $grey-color-dark) so the two stripes read as a pair.
+.site-header {
+  // background-color: #685227;
+  border-bottom: 0;
+}
+
+.site-footer {
+  border-top-color: #424242;
 }
 
 p {
@@ -92,13 +106,18 @@ blockquote {
   font-size: 1.5rem;
 }
 
-.page-content a {
+a {
   text-decoration: underline;
   text-underline-offset: 0.15em;
   text-decoration-thickness: 1px;
 }
 
+:root {
+  color-scheme: light;
+}
+
 body {
+  background-color: $background-color;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -142,93 +161,42 @@ code.highlighter-rouge {
   display: none;
 }
 
-// Dark mode: triggered by the visitor's OS / browser preference.
-// Palette tuned against #0d1117 background, with body and heading text
-// at ~14:1 and ~16:1 contrast respectively, muted secondary text at
-// ~5.4:1 (AA), and links at ~6:1 (AA). Code panel surface is #161b22
-// with a #30363d border so it reads as a distinct surface without glare.
-@media (prefers-color-scheme: dark) {
-  body {
-    color: #e6edf3;
-    background-color: #0d1117;
-  }
+.post-comments {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #424242;
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    color: #f0f6fc;
-  }
+.post-comments h2 {
+  margin-top: 0;
+}
 
-  h6 {
-    color: #8b949e;
-  }
+// Cusdis auto-sizes the iframe via postMessage but can underreport on first
+// paint, leaving an inner scrollbar around the comment form. A floor on the
+// iframe height keeps the form visible without scrolling. The auto-size
+// still kicks in for taller content (comment threads), so this only matters
+// when the reported height is too small.
+#cusdis_thread iframe {
+  min-height: 340px;
+}
 
-  a {
-    color: #58a6ff;
-  }
+a.comments-float {
+  display: none;
+  position: fixed;
+  margin-left: -12rem;
+  top: 18rem;
+  z-index: 10;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid $brand-color;
+  border-radius: 6px;
+  background: $background-color;
+  color: $brand-color;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(27, 31, 36, 0.08);
+}
 
-  .site-title,
-  .site-title:visited {
-    color: #f0f6fc;
+@media screen and (min-width: 1100px) {
+  a.comments-float {
+    display: block;
   }
-
-  .site-header {
-    border-top-color: #30363d;
-    border-bottom-color: #21262d;
-  }
-
-  .site-footer {
-    border-top-color: #21262d;
-    color: #8b949e;
-  }
-
-  .post-meta,
-  .post-link {
-    color: #8b949e;
-  }
-
-  blockquote {
-    color: #8b949e;
-    border-left-color: #30363d;
-  }
-
-  .post-figure figcaption {
-    color: #8b949e;
-  }
-
-  pre {
-    background-color: #161b22;
-    border-color: #30363d;
-  }
-
-  .highlight,
-  .highlighter-rouge .highlight {
-    background-color: #161b22;
-  }
-
-  code.highlighter-rouge {
-    background-color: #161b22;
-  }
-
-  table th,
-  table td {
-    border-color: #30363d;
-  }
-
-  table th {
-    background-color: #161b22;
-  }
-
-  hr {
-    border-color: #30363d;
-  }
-
-  // Rouge syntax highlighting tuned for the dark code panel.
-  .highlight .c, .highlight .c1, .highlight .cm, .highlight .cs { color: #8b949e; font-style: italic; }
-  .highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kt { color: #ff7b72; }
-  .highlight .o, .highlight .ow { color: #ff7b72; }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .sh, .highlight .si, .highlight .sx, .highlight .sr { color: #a5d6ff; }
-  .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo, .highlight .il { color: #79c0ff; }
-  .highlight .nb, .highlight .nc, .highlight .nf, .highlight .nn { color: #d2a8ff; }
-  .highlight .na, .highlight .nv { color: #79c0ff; }
-  .highlight .nt { color: #7ee787; }
-  .highlight .err { color: #f85149; background: transparent; }
 }

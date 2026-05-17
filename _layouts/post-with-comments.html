@@ -1,0 +1,18 @@
+---
+layout: post
+---
+{%- assign show_comments = true -%}
+{%- assign cusdis_app_id = site.cusdis.app_id | default: "" | strip -%}
+{%- if page.comments == false -%}
+  {%- assign show_comments = false -%}
+{%- endif -%}
+{%- if cusdis_app_id == "" -%}
+  {%- assign show_comments = false -%}
+{%- endif -%}
+
+{{ content }}
+
+{%- if show_comments -%}
+  {%- include cusdis-comments.html -%}
+  <a href="#comments" class="comments-float"><i class="fa-solid fa-comments"></i>&nbsp;&nbsp;Comments</a>
+{%- endif -%}
