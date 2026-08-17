@@ -8,6 +8,17 @@ _site/
 Gemfile.lock
 .bundle/
 vendor/bundle/
+vendor/cache/
+vendor/ruby/
+
+# Left behind when a gem compiles a native extension
+mkmf.log
+
+# Ruby version manager files. .ruby-version is committed on purpose: it pins
+# the Ruby that the GitHub Pages build uses.
+.ruby-gemset
+.rvmrc
+.tool-versions
 
 # macOS
 .DS_Store
