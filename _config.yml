@@ -16,6 +16,14 @@ plugins:
 cusdis:
   app_id: "70d81261-8335-4c8a-828f-f94f6cb08d1d"
   host: "https://cusdis.com"
+# Posts that get a real URL but stay off every list on the site. Jekyll pulls
+# only _posts into site.posts, and the home page, the tags page, and the feed
+# all iterate site.posts, so a file in _unlisted is reachable only by someone
+# who already has the link. sitemap: false keeps it out of sitemap.xml too.
+collections:
+  unlisted:
+    output: true
+    permalink: /:slug/
 defaults:
   - scope:
       path: ""
@@ -28,6 +36,13 @@ defaults:
       type: pages
     values:
       layout: page-with-social
+  - scope:
+      path: ""
+      type: unlisted
+    values:
+      layout: post-with-comments
+      author: Jeff Wu
+      sitemap: false
 exclude:
   - Gemfile
   - Gemfile.lock
