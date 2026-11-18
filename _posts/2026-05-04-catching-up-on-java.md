@@ -6,7 +6,7 @@ date: 2026-05-04
 last_modified_at: 2026-05-16
 categories: [meta]
 tags: [java, language-features, generics, records, pattern-matching, streams, lambdas, virtual-threads]
-published: true
+published: false
 ---
 
 [![A stylish East Asian female developer steps out of a glowing portal labeled 2010 into a vibrant modern Java city filled with signs for lambdas, records, streams, pattern matching, Optional, java.time, and virtual threads.]({{ '/assets/images/2026-05-04-catching-up-on-java/01-java-time-traveller.png' | relative_url }})]({{ '/assets/images/2026-05-04-catching-up-on-java/full/01-java-time-traveller.png' | relative_url }})

@@ -6,7 +6,7 @@ date: 2026-04-14
 last_modified_at: 2026-05-03
 categories: [meta]
 tags: [machine-learning, transformers, language-models, llms, tokenization, embeddings, attention, autoregressive-models]
-published: true
+published: false
 ---
 
 If you have used ChatGPT, Claude, or Gemini, the core text-generation model behind those products is usually some scaled-up version of an autoregressive decoder-only transformer. Production stacks differ in the details (multimodal inputs, tool and runtime layers, plenty of architecture details that aren't public), but the core recipe at the heart of generation is the same: read your prompt, predict the next token, append it, and do it again. One token at a time, until either the model emits an end-of-text token or the runtime cuts it off (max length, a configured stop sequence, a tool-call boundary, or a policy stop).

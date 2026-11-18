@@ -6,7 +6,7 @@ date: 2026-05-02
 last_modified_at: 2026-05-02
 categories: [meta]
 tags: [machine-learning, linear-regression, statistics, model-validation, gradient-descent, logistic-regression]
-published: true
+published: false
 ---
 
 Predicting the future feels like fortune teller stuff, but in the world of machine learning, it's mostly a math problem. The simplest version is the straight-line trend: one input, a line through the data, and then a guess for what happens next. The real world is rarely that simple though. Outcomes are almost never explained by just one thing, and the patterns they trace aren't always straight.
