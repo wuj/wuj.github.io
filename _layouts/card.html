@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="{{ site.lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {%- seo -%}
+  <link rel="icon" href="{{ '/favicon.svg' | relative_url }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;1,300&display=swap">
+  <link rel="stylesheet" href="{{ '/assets/css/card.css' | relative_url }}">
+</head>
+<body class="card">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="layer">
+    <header>
+      <div class="brand-wrap">
+        <a class="brand" href="{{ '/' | relative_url }}" aria-label="jeffwu.com, home">{% include jw-mark.svg %}</a>
+        {%- if page.quote %}
+        <p class="quote">{{ page.quote }}</p>
+        {%- endif %}
+      </div>
+      <nav class="links" aria-label="Contact">
+        <a href="mailto:{{ site.email }}">Email</a>
+      </nav>
+    </header>
+    <main class="bio">
+      {{ content }}
+    </main>
+  </div>
+  <script src="{{ '/assets/js/field.js' | relative_url }}" defer></script>
+</body>
+</html>

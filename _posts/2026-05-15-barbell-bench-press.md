@@ -6,7 +6,7 @@ date: 2026-05-15
 last_modified_at: 2026-05-15
 categories: [meta]
 tags: [bench-press, strength-training, barbell, starting-strength, technique, powerlifting]
-published: true
+published: false
 ---
 
 The bench press is the lift most people picture when they hear the word "lift," and it's also the lift most likely to put you in a bad spot if you treat it casually. A loaded bar hovers over your face for every rep, and you can't step out from under it the way you can in a squat or drop it to the ground the way you can in a deadlift. So it pays to learn the mechanics before you load the bar.

@@ -6,7 +6,7 @@ date: 2001-02-11
 last_modified_at: 2026-05-01
 categories: [meta]
 tags: [prolog, dcg, grammars, parsing, computational-linguistics, difference-lists]
-published: true
+published: false
 ---
 
 Writing a parser by hand is one of those exercises that always seems harder than it should be. The grammar fits on half a page; the code somehow doesn't. Not to worry though - Prolog to the rescue! Prolog has a feature that allows us to do this elegantly: Definite Clause Grammars, or DCGs for short. It's a small piece of syntax that does a lot. The rest of this post walks through what DCGs are, how they work, and why they're worth knowing.
