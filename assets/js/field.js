@@ -7,7 +7,6 @@
   if (!cv || !cv.getContext) return;
   var ctx = cv.getContext("2d");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var noHover = window.matchMedia("(hover: none)");
   var GAP = 28, PADX = 10, PADY = 6, FEATHER = 22;
   var W = 0, H = 0, dpr = 1, mx = -9999, my = -9999, tmx = -9999, tmy = -9999, t0 = performance.now();
   var quietBoxes = [], ripples = [];
@@ -19,7 +18,7 @@
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function quoteShown() {
-    return noHover.matches || (brandWrap && brandWrap.matches(":hover")) || (brandLink && brandLink.matches(":focus-visible"));
+    return (brandWrap && brandWrap.matches(":hover")) || (brandLink && brandLink.matches(":focus-visible"));
   }
 
   function measure() {
